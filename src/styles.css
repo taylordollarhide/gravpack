@@ -437,7 +437,7 @@ select.field-input option { background: var(--bg2); color: var(--t1); }
 .depleted-card { margin:0 16px 8px;background:color-mix(in srgb, var(--accent) 8%, transparent);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer; }
 .depleted-name { font-family:var(--sans);font-size:14px;font-weight:500;color:var(--t1); }
 .depleted-meta { font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:3px; }
-.restock-btn { background:var(--accent);border:none;border-radius:6px;padding:6px 12px;font-family:var(--sans);font-size:12px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0; }
+.restock-btn { background:var(--accent);border:none;border-radius:6px;padding:6px 12px;font-family:var(--sans);font-size:12px;font-weight:600;color:#000;cursor:pointer;white-space:nowrap;flex-shrink:0; }
 
 /* ─── PRICE TRENDS ─── */
 .trend-card { margin: 0 16px 8px; background: var(--bg2); border: 1px solid var(--bdr); border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
