@@ -186,17 +186,6 @@ function ShelfScreen({
               })}
             </>
           )}
-
-          {good.length > 0 && (
-            <>
-              <div className="section-dot-row">
-                <div className="dot" style={{ background: 'var(--good)' }} />
-                Good standing
-              </div>
-              {good.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
-            </>
-          )}
-
           {depleted.length > 0 && (
             <>
               <div className="section-dot-row">
@@ -214,6 +203,18 @@ function ShelfScreen({
               ))}
             </>
           )}
+
+          {good.length > 0 && (
+            <>
+              <div className="section-dot-row">
+                <div className="dot" style={{ background: 'var(--good)' }} />
+                Good standing
+              </div>
+              {good.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
+            </>
+          )}
+
+          
         </>
       )}
 
