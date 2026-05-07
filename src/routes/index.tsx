@@ -891,7 +891,7 @@ function AddItemModal({
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: toTitleCase(e.target.value) }))}
                 placeholder="e.g. Canned Tuna"
-                autoFocus
+              
               />
             </div>
             <div className="field-group">
