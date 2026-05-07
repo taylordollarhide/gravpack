@@ -5,7 +5,7 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-visual' },
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
@@ -114,24 +114,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               }
             } catch(e) {}
 
-            // Capture screen height once at load — before any keyboard interaction.
-            // Never update on resize so keyboard cannot change the overlay height.
-            var screenH = window.screen.height;
-            var initialH = window.innerHeight;
-            document.documentElement.style.setProperty('--real-vh', initialH + 'px');
 
-            // Use visualViewport API to detect keyboard and counter-translate modals
-            if (window.visualViewport) {
-              window.visualViewport.addEventListener('resize', function() {
-                var offset = initialH - window.visualViewport.height;
-                var overlays = document.querySelectorAll('.modal-overlay');
-                overlays.forEach(function(el) {
-                  el.style.transform = offset > 50
-                    ? 'translateY(-' + offset + 'px)'
-                    : '';
-                });
-              });
-            }
 
             function dismiss() {
               var el = document.getElementById('gp-splash');
