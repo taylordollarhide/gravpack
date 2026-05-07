@@ -145,6 +145,28 @@ export function saveLastBackup(date: string): void {
   try { localStorage.setItem('gravpack_last_backup', date) } catch {}
 }
 
+
+// ─── Theme helpers ────────────────────────────────────────────────────────────
+
+export type ThemePreference = 'system' | 'dark' | 'light'
+
+export function loadTheme(): ThemePreference {
+  try { return (localStorage.getItem('gravpack_theme') as ThemePreference) || 'system' } catch { return 'system' }
+}
+
+export function saveTheme(t: ThemePreference): void {
+  try { localStorage.setItem('gravpack_theme', t) } catch {}
+}
+
+export function applyTheme(t: ThemePreference): void {
+  const html = document.documentElement
+  if (t === 'system') {
+    html.removeAttribute('data-theme')
+  } else {
+    html.setAttribute('data-theme', t)
+  }
+}
+
 export function getStorageSize(): string {
   try {
     let total = 0

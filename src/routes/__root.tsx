@@ -106,6 +106,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
+            // Apply saved theme before app renders to avoid flash
+            try {
+              var t = localStorage.getItem('gravpack_theme');
+              if (t === 'dark' || t === 'light') {
+                document.documentElement.setAttribute('data-theme', t);
+              }
+            } catch(e) {}
+
             function dismiss() {
               var el = document.getElementById('gp-splash');
               if (!el) return;

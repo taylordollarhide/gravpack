@@ -5,6 +5,7 @@ import {
   UNITS, LOCATIONS, CATEGORIES, CAT_EMOJI, DEFAULT_HOUSEHOLD,
   loadItems, saveItems, loadHousehold, saveHousehold,
   loadDisplayName, saveDisplayName, loadLastBackup, getStorageSize,
+  type ThemePreference, loadTheme, saveTheme, applyTheme,
   getExpiryStatus, getExpiryBadgeText, formatDate,
   calcScores, scoreColor, buildStrategy,
   exportCSV, parseCSV,
@@ -186,6 +187,17 @@ function ShelfScreen({
               })}
             </>
           )}
+
+          {good.length > 0 && (
+            <>
+              <div className="section-dot-row">
+                <div className="dot" style={{ background: 'var(--good)' }} />
+                Good standing
+              </div>
+              {good.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
+            </>
+          )}
+
           {depleted.length > 0 && (
             <>
               <div className="section-dot-row">
@@ -203,18 +215,6 @@ function ShelfScreen({
               ))}
             </>
           )}
-
-          {good.length > 0 && (
-            <>
-              <div className="section-dot-row">
-                <div className="dot" style={{ background: 'var(--good)' }} />
-                Good standing
-              </div>
-              {good.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
-            </>
-          )}
-
-          
         </>
       )}
 
@@ -641,10 +641,12 @@ function StratItem({ action, rank }: { action: ReturnType<typeof buildStrategy>[
 // ─── Settings Screen ──────────────────────────────────────────────────────────
 
 function SettingsScreen({
-  items, displayName, onDisplayNameChange, onClearAll, onImport,
+  items, displayName, theme, onThemeChange, onDisplayNameChange, onClearAll, onImport,
 }: {
   items: Item[]
   displayName: string
+  theme: ThemePreference
+  onThemeChange: (t: ThemePreference) => void
   onDisplayNameChange: (name: string) => void
   onClearAll: () => void
   onImport: (items: Item[]) => void
@@ -689,6 +691,24 @@ function SettingsScreen({
     <div className="screen" style={{ display: 'block' }}>
       <div className="screen-header">
         <span className="screen-title">SETTINGS</span>
+      </div>
+
+      <div className="section-label">Appearance</div>
+      <div className="theme-grid">
+        {([
+          ['system', '⚙️', 'System'],
+          ['dark', '🌑', 'Dark'],
+          ['light', '☀️', 'Light'],
+        ] as [ThemePreference, string, string][]).map(([val, icon, label]) => (
+          <button
+            key={val}
+            className={`theme-btn${theme === val ? ' selected' : ''}`}
+            onClick={() => onThemeChange(val)}
+          >
+            <span className="theme-icon">{icon}</span>
+            <span>{label}</span>
+          </button>
+        ))}
       </div>
 
       <div className="section-label">Account</div>
@@ -1228,6 +1248,9 @@ function GravPackApp() {
   const [items, setItemsState] = useState<Item[]>(loadItems)
   const [household, setHouseholdState] = useState<Household>(loadHousehold)
   const [displayName, setDisplayNameState] = useState(loadDisplayName)
+  const [theme, setThemeState] = useState<ThemePreference>(loadTheme)
+
+  useEffect(() => { applyTheme(theme) }, [theme])
 
   const [addModal, setAddModal] = useState<{ open: boolean; edit?: Item | null }>({ open: false })
   const [detailItem, setDetailItem] = useState<Item | null>(null)
@@ -1242,6 +1265,12 @@ function GravPackApp() {
   const setHousehold = useCallback((h: Household) => {
     setHouseholdState(h)
     saveHousehold(h)
+  }, [])
+
+  const setTheme = useCallback((t: ThemePreference) => {
+    setThemeState(t)
+    saveTheme(t)
+    applyTheme(t)
   }, [])
 
   const setDisplayName = useCallback((name: string) => {
@@ -1351,6 +1380,8 @@ function GravPackApp() {
           <SettingsScreen
             items={items}
             displayName={displayName}
+            theme={theme}
+            onThemeChange={setTheme}
             onDisplayNameChange={setDisplayName}
             onClearAll={() => setItems([])}
             onImport={setItems}
