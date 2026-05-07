@@ -187,7 +187,23 @@ function ShelfScreen({
               })}
             </>
           )}
-
+          {depleted.length > 0 && (
+            <>
+              <div className="section-dot-row">
+                <div className="dot" style={{ background: 'var(--yellow)' }} />
+                Depleted · restock needed
+              </div>
+              {depleted.map(i => (
+                <div key={i.id} className="depleted-card" onClick={() => onItemClick(i)}>
+                  <div>
+                    <div className="depleted-name">{i.name}</div>
+                    <div className="depleted-meta">{i.category} · {i.location}</div>
+                  </div>
+                  <button className="restock-btn" onClick={e => { e.stopPropagation(); onRestock(i) }}>Restock</button>
+                </div>
+              ))}
+            </>
+          )}
           {good.length > 0 && (
             <>
               <div className="section-dot-row">
