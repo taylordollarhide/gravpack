@@ -71,6 +71,9 @@ export interface Scores {
   foodDetail: string
   powerDetail: string
   medicalDetail: string
+  // shelf-derived values for transparency
+  shelfWaterGal: number
+  shelfFoodCal: number
 }
 
 export interface StrategyAction {
@@ -198,45 +201,138 @@ export function formatDate(iso: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-// ─── Scoring engine ───────────────────────────────────────────────────────────
+// ─── Shelf → water conversion ─────────────────────────────────────────────────
+// Converts Water category shelf items to estimated gallons.
+// Only counts non-depleted, non-expired items.
 
-export function calcScores(h: Household): Scores {
-  const totalPeople = h.adults + h.kids + h.seniors
+const WATER_GAL_PER_UNIT: Record<string, number> = {
+  gal:     1,       // 1 gallon jug
+  bottles: 0.26,    // ~1L bottle
+  units:   0.13,    // ~500ml default
+  cases:   3.2,     // 24 × 500ml
+  packs:   1.6,     // 12 × 500ml
+  lbs:     0,       // not water volume
+  oz:      0.0078,  // fluid oz → gal
+  cans:    0.26,    // ~1L can
+}
+
+export function shelfWaterGal(items: Item[]): number {
+  return items
+    .filter(i => i.category === 'Water' && !i.depleted && getExpiryStatus(i.expiry, i.expiryType) !== 'expired')
+    .reduce((total, i) => {
+      const rate = WATER_GAL_PER_UNIT[i.unit] ?? 0.13
+      return total + i.qty * rate
+    }, 0)
+}
+
+// ─── Shelf → food conversion ──────────────────────────────────────────────────
+// Converts Food category shelf items to estimated total calories.
+// Only counts non-depleted, non-expired items.
+
+const FOOD_CAL_PER_UNIT: Record<string, number> = {
+  meals:  600,   // prepared meal
+  cans:   350,   // average canned good
+  lbs:   1600,   // grains/beans/rice per lb
+  boxes:  400,   // boxed goods
+  bags:   800,   // bag of dry goods
+  packs:  250,   // snack pack
+  units:  300,   // generic unit
+  rolls:  200,   // bread rolls etc
+  oz:      75,   // per oz of dry food
+  bottles:  0,   // not food calories
+  gal:      0,   // not food calories
+  tabs:     0,   // not food
+}
+
+export function shelfFoodCal(items: Item[]): number {
+  return items
+    .filter(i => i.category === 'Food' && !i.depleted && getExpiryStatus(i.expiry, i.expiryType) !== 'expired')
+    .reduce((total, i) => {
+      const rate = FOOD_CAL_PER_UNIT[i.unit] ?? 300
+      return total + i.qty * rate
+    }, 0)
+}
+
+// ─── Scoring engine ───────────────────────────────────────────────────────────
+// items param is optional — pass shelf items to auto-derive water/food values.
+// Shelf-derived values are blended with household manual entries (higher wins).
+
+export function calcScores(h: Household, items: Item[] = []): Scores {
   const dailyWater = h.adults * 1 + h.seniors * 1 + h.dogs * 1 + h.cats * 0.3
 
-  // Water scoring
+  // ── Water ──
+  // Household manual entries
   const commercialGal = h.bottled * 6
   const treatmentPts = (h.tabs && h.sawyer) ? 25 : h.sawyer ? 20 : h.lifestraw ? 15 : h.tabs ? 8 : 0
   const personalGal = treatmentPts > 0 ? h.cans * 6 : 0
   const bobGal = (h.bob && treatmentPts > 0) ? 100 : h.bob ? 50 : 0
-  const totalSafeWater = commercialGal + personalGal + bobGal
+  const householdWaterGal = commercialGal + personalGal + bobGal
+
+  // Shelf-derived water
+  const derivedWaterGal = shelfWaterGal(items)
+
+  // Use the higher of manual or shelf-derived, plus the other as a supplement
+  // This way manual entries and shelf both contribute — shelf fills in what manual misses
+  const totalSafeWater = Math.max(householdWaterGal, derivedWaterGal) +
+    (householdWaterGal > 0 && derivedWaterGal > 0
+      ? Math.min(householdWaterGal, derivedWaterGal) * 0.5  // partial credit for having both sources
+      : 0)
+
   const waterDays = dailyWater > 0 ? totalSafeWater / dailyWater : 0
   const waterDayScore = Math.min(waterDays / 30, 1) * 60
   const waterTreatScore = Math.min(treatmentPts, 25)
   const waterMobileScore = h.jerry ? 15 : 0
   const waterScore = Math.min(Math.round(waterDayScore + waterTreatScore + waterMobileScore), 100)
 
+  const waterSourceLabel = derivedWaterGal > 0 && householdWaterGal > 0
+    ? 'shelf + household'
+    : derivedWaterGal > 0
+    ? 'from shelf'
+    : 'from household'
+
   const waterDetail = dailyWater > 0
-    ? `${waterDays.toFixed(1)}d safe water · ${totalSafeWater.toFixed(0)} gal`
+    ? `${waterDays.toFixed(1)}d · ${totalSafeWater.toFixed(0)} gal · ${waterSourceLabel}`
     : 'configure household'
 
-  // Food scoring
+  // ── Food ──
   const dailyCal = h.adults * 2000 + h.kids * 1400 + h.seniors * 1600
-  const foodDays = dailyCal > 0 && h.cal > 0 ? h.cal / dailyCal : 0
+
+  // Shelf-derived calories (total, not per day)
+  const derivedTotalCal = shelfFoodCal(items)
+
+  // Household manual entry is cal/day × 30 equivalent stored
+  // h.cal represents daily available calories from stored food
+  const householdTotalCal = h.cal * 30  // convert daily rate to total stored equiv
+
+  // Use higher of the two
+  const totalStoredCal = Math.max(householdTotalCal, derivedTotalCal) +
+    (householdTotalCal > 0 && derivedTotalCal > 0
+      ? Math.min(householdTotalCal, derivedTotalCal) * 0.3
+      : 0)
+
+  const foodDays = dailyCal > 0 && totalStoredCal > 0 ? totalStoredCal / dailyCal : 0
   let foodScore = Math.min(Math.round((foodDays / 14) * 80), 80)
   if (h.veg) foodScore = Math.round(foodScore * 0.85)
   if (h.infant) foodScore = Math.max(0, foodScore - 15)
   foodScore = Math.min(foodScore, 100)
 
-  const foodDetail = dailyCal > 0
-    ? `${foodDays.toFixed(1)}d calories · ${h.cal.toLocaleString()} cal/day stored`
-    : 'configure household'
+  const foodSourceLabel = derivedTotalCal > 0 && householdTotalCal > 0
+    ? 'shelf + household'
+    : derivedTotalCal > 0
+    ? 'from shelf'
+    : 'from household'
 
-  // Power scoring
+  const foodDetail = dailyCal > 0 && totalStoredCal > 0
+    ? `${foodDays.toFixed(1)}d · ${Math.round(totalStoredCal / 1000)}k cal · ${foodSourceLabel}`
+    : dailyCal === 0
+    ? 'configure household'
+    : 'no food tracked'
+
+  // ── Power ──
   const powerScore = Math.min(h.batt * 18 + (h.gen ? 30 : 0), 100)
   const powerDetail = `${h.batt} battery pack${h.batt !== 1 ? 's' : ''}${h.gen ? ' + generator' : ''}`
 
-  // Medical scoring
+  // ── Medical ──
   let medScore = 0
   if (h.fak) medScore += 50
   if (h.rx && h.rxs) medScore += 40
@@ -249,14 +345,20 @@ export function calcScores(h: Household): Scores {
     h.rx ? (h.rxs ? '30d rx ✓' : 'rx gap!') : ''
   ].filter(Boolean).join(' · ')
 
-  // Overall (weighted)
+  // ── Overall ──
   const overall = Math.round(waterScore * 0.3 + foodScore * 0.3 + powerScore * 0.2 + medScore * 0.2)
-  const coverageDays = Math.min(waterDays, foodDays > 0 ? foodDays : waterDays)
+  const coverageDays = Math.min(
+    waterDays > 0 ? waterDays : Infinity,
+    foodDays > 0 ? foodDays : Infinity
+  )
+  const finalCoverage = coverageDays === Infinity ? 0 : coverageDays
 
   return {
     overall, water: waterScore, food: foodScore, power: powerScore, medical: medScore,
-    coverageDays, waterDays, foodDays,
+    coverageDays: finalCoverage, waterDays, foodDays,
     waterDetail, foodDetail, powerDetail, medicalDetail: medDetail,
+    shelfWaterGal: derivedWaterGal,
+    shelfFoodCal: derivedTotalCal,
   }
 }
 
@@ -271,13 +373,13 @@ export function scoreColor(score: number): string {
 
 export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
   const actions: StrategyAction[] = []
-  const scores = calcScores(h)
+  const scores = calcScores(h, items)  // pass items for shelf-aware scoring
   const dailyWater = h.adults * 1 + h.seniors * 1 + h.dogs * 1 + h.cats * 0.3
   const dailyCal = h.adults * 2000 + h.kids * 1400 + h.seniors * 1600
 
   // Water actions
-  const commercialGal = h.bottled * 6
-  if (dailyWater > 0 && commercialGal < dailyWater * 3) {
+  const totalWaterGal = (h.bottled * 6) + scores.shelfWaterGal
+  if (dailyWater > 0 && totalWaterGal < dailyWater * 3) {
     actions.push({
       priority: 'urgent', title: 'Buy bottled water cases now',
       why: `Under 3 days of safe, ready-to-use water · fastest path`,
@@ -307,7 +409,7 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
     })
   }
 
-  if (h.cans === 0 && h.bottled < 5) {
+  if (h.cans === 0 && h.bottled < 5 && scores.shelfWaterGal < 20) {
     actions.push({
       priority: 'high', title: 'Add 6-gal food-grade cans',
       why: 'Reusable personal storage — fill from tap, treat before use',
@@ -331,18 +433,29 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
     })
   }
 
-  // Food actions
+  // Food actions — use shelf-aware food days
   if (dailyCal > 0 && scores.foodDays < 3) {
     actions.push({
       priority: 'urgent', title: 'Stock 7-day food supply',
-      why: `${scores.foodDays.toFixed(1)}d calories stored · under minimum`,
+      why: scores.shelfFoodCal > 0
+        ? `Shelf has ~${scores.foodDays.toFixed(1)}d of calories · under minimum`
+        : 'No food tracked on shelf · add items to see coverage',
       cost: '~$50–120', impact: '+20–35 pts', category: 'Food'
     })
   } else if (dailyCal > 0 && scores.foodDays < 14) {
     actions.push({
       priority: 'high', title: 'Expand food to 14-day supply',
-      why: `${scores.foodDays.toFixed(1)}d of calories · target 14d+`,
+      why: `${scores.foodDays.toFixed(1)}d of calories tracked · target 14d+`,
       cost: '~$80–160', impact: '+10–20 pts', category: 'Food'
+    })
+  }
+
+  // Suggest adding food to shelf if none tracked
+  if (scores.shelfFoodCal === 0 && h.cal === 0) {
+    actions.push({
+      priority: 'urgent', title: 'Add food items to your shelf',
+      why: 'No food tracked — shelf and household both empty · score cannot calculate',
+      cost: 'free to track', impact: 'unlocks food score', category: 'Food'
     })
   }
 
