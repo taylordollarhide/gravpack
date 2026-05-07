@@ -187,6 +187,17 @@ function ShelfScreen({
               })}
             </>
           )}
+
+          {good.length > 0 && (
+            <>
+              <div className="section-dot-row">
+                <div className="dot" style={{ background: 'var(--good)' }} />
+                Good standing
+              </div>
+              {good.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
+            </>
+          )}
+
           {depleted.length > 0 && (
             <>
               <div className="section-dot-row">
@@ -204,17 +215,6 @@ function ShelfScreen({
               ))}
             </>
           )}
-          {good.length > 0 && (
-            <>
-              <div className="section-dot-row">
-                <div className="dot" style={{ background: 'var(--good)' }} />
-                Good standing
-              </div>
-              {good.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
-            </>
-          )}
-
-          
         </>
       )}
 
@@ -1341,6 +1341,27 @@ function GravPackApp() {
   ]
 
   const hasModal = addModal.open || detailItem !== null || consumeItem !== null || restockItem !== null
+
+  // Lock body scroll when modal open — prevents iOS keyboard from shifting layout
+  useEffect(() => {
+    if (hasModal) {
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+    } else {
+      const top = document.body.style.top
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      if (top) window.scrollTo(0, -parseInt(top || '0'))
+    }
+    return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+    }
+  }, [hasModal])
 
   return (
     <div className="gp-app">

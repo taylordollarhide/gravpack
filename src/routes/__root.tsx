@@ -114,6 +114,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               }
             } catch(e) {}
 
+            // Lock modal overlays to true screen height so keyboard does not push them up.
+            // iOS PWA ignores interactive-widget meta — we pin via CSS custom property.
+            function setVH() {
+              var vh = window.innerHeight;
+              document.documentElement.style.setProperty('--real-vh', vh + 'px');
+            }
+            setVH();
+            window.addEventListener('resize', setVH);
+
             function dismiss() {
               var el = document.getElementById('gp-splash');
               if (!el) return;
