@@ -163,7 +163,29 @@ function ShelfScreen({
               {needsAttn.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
             </>
           )}
-
+          {trendItems.length > 0 && (
+            <>
+              <div className="section-label">Price trends</div>
+              {trendItems.map(i => {
+                const first = i.priceHistory[0].price
+                const last = i.priceHistory[i.priceHistory.length - 1].price
+                const pct = ((last - first) / first) * 100
+                const up = pct > 0
+                return (
+                  <div key={i.id} className="trend-card" onClick={() => onItemClick(i)}>
+                    <div className="trend-left">
+                      <div className="trend-name">{i.name}</div>
+                      <div className="trend-meta">{i.priceHistory.length} price records</div>
+                    </div>
+                    <div className="trend-right">
+                      <div className={`trend-pct ${up ? 'up' : 'down'}`}>{up ? '↑' : '↓'}{Math.abs(pct).toFixed(0)}%</div>
+                      <div className="trend-prices">${first.toFixed(2)} → ${last.toFixed(2)}</div>
+                    </div>
+                  </div>
+                )
+              })}
+            </>
+          )}
           {good.length > 0 && (
             <>
               <div className="section-dot-row">
@@ -192,29 +214,7 @@ function ShelfScreen({
             </>
           )}
 
-          {trendItems.length > 0 && (
-            <>
-              <div className="section-label">Price trends</div>
-              {trendItems.map(i => {
-                const first = i.priceHistory[0].price
-                const last = i.priceHistory[i.priceHistory.length - 1].price
-                const pct = ((last - first) / first) * 100
-                const up = pct > 0
-                return (
-                  <div key={i.id} className="trend-card" onClick={() => onItemClick(i)}>
-                    <div className="trend-left">
-                      <div className="trend-name">{i.name}</div>
-                      <div className="trend-meta">{i.priceHistory.length} price records</div>
-                    </div>
-                    <div className="trend-right">
-                      <div className={`trend-pct ${up ? 'up' : 'down'}`}>{up ? '↑' : '↓'}{Math.abs(pct).toFixed(0)}%</div>
-                      <div className="trend-prices">${first.toFixed(2)} → ${last.toFixed(2)}</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </>
-          )}
+          
         </>
       )}
 
