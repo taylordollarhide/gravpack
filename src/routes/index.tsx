@@ -87,7 +87,6 @@ function ShelfScreen({
 
   const trendItems = items.filter(i => i.priceHistory.length >= 2)
 
-  // Stats
   const totalItems = items.filter(i => !i.depleted).length
   const expiredCount = items.filter(i => !i.depleted && getExpiryStatus(i.expiry, i.expiryType) === 'expired').length
   const restockCount = depleted.length
@@ -163,6 +162,7 @@ function ShelfScreen({
               {needsAttn.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
             </>
           )}
+
           {trendItems.length > 0 && (
             <>
               <div className="section-label">Price trends</div>
@@ -186,6 +186,7 @@ function ShelfScreen({
               })}
             </>
           )}
+
           {good.length > 0 && (
             <>
               <div className="section-dot-row">
@@ -213,8 +214,6 @@ function ShelfScreen({
               ))}
             </>
           )}
-
-          
         </>
       )}
 
@@ -292,15 +291,16 @@ function ExpiringScreen({ items, onItemClick }: { items: Item[]; onItemClick: (i
 // ─── Readiness Screen ─────────────────────────────────────────────────────────
 
 function ReadinessScreen({
-  household, onGoToStrategy, onGoToHousehold, onGoToSettings,
+  household, items, onGoToStrategy, onGoToHousehold, onGoToSettings,
 }: {
   household: Household
+  items: Item[]
   onGoToStrategy: () => void
   onGoToHousehold: () => void
   onGoToSettings: () => void
 }) {
   const hasHousehold = household.adults + household.kids + household.seniors > 0
-  const scores = calcScores(household)
+  const scores = calcScores(household, items)
 
   const covPct = Math.min((scores.coverageDays / 90) * 100, 100)
 
@@ -343,7 +343,7 @@ function ReadinessScreen({
             <div className="score-pills">
               {cats.map(c => (
                 <button key={c.name} className="score-pill" style={{ color: scoreColor(c.score) }}>
-                  {c.name}\n{c.score}
+                  {c.name}{'\n'}{c.score}
                 </button>
               ))}
             </div>
@@ -481,7 +481,7 @@ function HouseholdScreen({ household, onChange }: { household: Household; onChan
       <div className="section-label">Food supply</div>
       <div className="card">
         <div className="sl-row">
-          <div className="sl-lbl">Stored cal/day<span className="sl-sub">Total calories on hand ÷ days</span></div>
+          <div className="sl-lbl">Stored cal/day<span className="sl-sub">Manual override · shelf auto-calculates</span></div>
           <input type="range" className="sl" min={0} max={6000} step={100} value={household.cal} onChange={sl('cal')} />
           <div className="slv">{household.cal > 0 ? `${(household.cal / 1000).toFixed(1)}k` : '0'}</div>
         </div>
@@ -496,22 +496,28 @@ function HouseholdScreen({ household, onChange }: { household: Household; onChan
       </div>
 
       <div className="section-label">Power</div>
+      <div style={{ padding: '0 16px 8px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t3)', lineHeight: 1.5 }}>
+        Add generators, fuel, solar, and battery packs to your shelf for automatic detection.
+      </div>
       <div className="card">
         <div className="sl-row">
-          <div className="sl-lbl">Battery packs<span className="sl-sub">Portable power banks</span></div>
+          <div className="sl-lbl">Battery packs<span className="sl-sub">Manual override · shelf auto-detects</span></div>
           <input type="range" className="sl" min={0} max={5} value={household.batt} onChange={sl('batt')} />
           <div className="slv">{household.batt}</div>
         </div>
         <div className="tog-row">
-          <div className="tog-lbl">Generator<span className="tog-sub">Any size, any fuel</span></div>
+          <div className="tog-lbl">Generator<span className="tog-sub">Manual override · shelf auto-detects</span></div>
           <button className={`tog${household.gen ? ' on' : ''}`} onClick={tog('gen')}><div className="tok" /></button>
         </div>
       </div>
 
       <div className="section-label">Medical</div>
+      <div style={{ padding: '0 16px 8px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t3)', lineHeight: 1.5 }}>
+        Add first aid kits, medications, and supplements to your shelf for automatic detection.
+      </div>
       <div className="card">
         {([
-          ['fak', 'First aid kit (stocked)', 'Unexpired complete kit'],
+          ['fak', 'First aid kit (stocked)', 'Manual override · shelf auto-detects'],
           ['rx', 'Prescriptions in household', 'Flags 30-day supply gap'],
           ['rxs', '30-day rx supply ready', 'All household members covered'],
           ['mob', 'Mobility limitations', 'Affects bug-out planning'],
@@ -537,7 +543,7 @@ function StrategyScreen({
   items: Item[]
   onBack: () => void
 }) {
-  const scores = calcScores(household)
+  const scores = calcScores(household, items)
   const actions = buildStrategy(household, items)
   const urgent = actions.filter(a => a.priority === 'urgent')
   const high = actions.filter(a => a.priority === 'high')
@@ -568,7 +574,7 @@ function StrategyScreen({
         <div className="bar-wrap">
           <div className="bar-fill" style={{ width: `${scores.overall}%`, background: scoreColor(scores.overall) }} />
         </div>
-        <div className="strat-hint">Ranked by score impact per dollar. Updates with household.</div>
+        <div className="strat-hint">Ranked by score impact. Reads directly from your shelf.</div>
       </div>
 
       {actions.length === 0 ? (
@@ -622,7 +628,7 @@ function StratItem({ action, rank }: { action: ReturnType<typeof buildStrategy>[
         <div className="strat-title">{action.title}</div>
         <div className="strat-why">{action.why}</div>
         <div className="strat-tags">
-          <span className="strat-tag" style={{ background: '#FFCC0015', color: 'var(--accent)', border: '1px solid #FFCC0030' }}>{action.cost}</span>
+          <span className="strat-tag" style={{ background: 'var(--accent)15', color: 'var(--accent)', border: '1px solid var(--accent)30' }}>{action.cost}</span>
           <span className="strat-tag" style={{ background: '#22c55e15', color: 'var(--good)', border: '1px solid #22c55e30' }}>{action.impact}</span>
           <span className="strat-tag" style={{ background: 'var(--bg)', color: 'var(--t3)', border: '1px solid var(--bdr)' }}>{action.category}</span>
         </div>
@@ -700,7 +706,7 @@ function SettingsScreen({
           <span className="set-label">Account type</span>
           <span className="badge badge-accent">FREE BETA</span>
         </div>
-        <div className="set-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+        <div className="set-row">
           <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t3)', lineHeight: 1.5 }}>
             Local account · no sign-in required
           </span>
@@ -723,7 +729,7 @@ function SettingsScreen({
       </div>
 
       <div className="section-label">Data management</div>
-      <div className="section-label" style={{ padding: '4px 20px 8px', color: 'var(--t3)', fontSize: 11 }}>
+      <div style={{ padding: '4px 20px 8px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t3)' }}>
         Last backup · {lastBackup || 'Never'} · Recommendation: Weekly or after restocking
       </div>
       <div className="backup-row">
@@ -840,7 +846,7 @@ function AddItemModal({
     })
   }
 
-  const stepLabels = ['Name & Category', 'Quantity & Expiry', 'Location & Notes']
+  const stepLabels = ['Name & Category', 'Quantity & Price', 'Location & Notes']
 
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
@@ -1039,10 +1045,8 @@ function ItemDetailModal({
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const status = getExpiryStatus(item.expiry, item.expiryType)
-
   const dateLabel = item.expiryType === 'best-by' ? 'Best by' : 'Expiration'
 
-  // Consumption rate
   let consumeRate = ''
   if (item.consumeLog.length >= 2) {
     const sorted = [...item.consumeLog].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -1062,26 +1066,20 @@ function ItemDetailModal({
           <div className="modal-handle" style={{ margin: '0 auto 0' }} />
           <button className="overflow-btn" onClick={() => setMenuOpen(o => !o)}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="5" r="1" fill="currentColor" /><circle cx="12" cy="12" r="1" fill="currentColor" /><circle cx="12" cy="19" r="1" fill="currentColor" />
+              <circle cx="12" cy="5" r="1" fill="currentColor" />
+              <circle cx="12" cy="12" r="1" fill="currentColor" />
+              <circle cx="12" cy="19" r="1" fill="currentColor" />
             </svg>
             {menuOpen && (
               <div className="overflow-menu" onClick={e => e.stopPropagation()}>
-                <div className="overflow-menu-item" onClick={() => { onEdit(); setMenuOpen(false) }}>
-                  ✏️ Edit item
-                </div>
+                <div className="overflow-menu-item" onClick={() => { onEdit(); setMenuOpen(false) }}>✏️ Edit item</div>
                 {!item.depleted && (
-                  <div className="overflow-menu-item" onClick={() => { onConsume(); setMenuOpen(false) }}>
-                    📦 Use item
-                  </div>
+                  <div className="overflow-menu-item" onClick={() => { onConsume(); setMenuOpen(false) }}>📦 Use item</div>
                 )}
                 {item.depleted && (
-                  <div className="overflow-menu-item" onClick={() => { onRestock(); setMenuOpen(false) }}>
-                    🔄 Restock
-                  </div>
+                  <div className="overflow-menu-item" onClick={() => { onRestock(); setMenuOpen(false) }}>🔄 Restock</div>
                 )}
-                <div className="overflow-menu-item danger" onClick={() => { onDelete(); setMenuOpen(false) }}>
-                  🗑 Delete
-                </div>
+                <div className="overflow-menu-item danger" onClick={() => { onDelete(); setMenuOpen(false) }}>🗑 Delete</div>
               </div>
             )}
           </button>
@@ -1138,9 +1136,7 @@ function ItemDetailModal({
           <div className="price-history">
             <div className="price-history-head">
               <span className="price-history-title">Price history</span>
-              <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t3)' }}>
-                {item.priceHistory.length} records
-              </span>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t3)' }}>{item.priceHistory.length} records</span>
             </div>
             {item.priceHistory.map((r, i) => {
               const prev = item.priceHistory[i - 1]
@@ -1232,7 +1228,6 @@ function GravPackApp() {
   const [household, setHouseholdState] = useState<Household>(loadHousehold)
   const [displayName, setDisplayNameState] = useState(loadDisplayName)
 
-  // Modal state
   const [addModal, setAddModal] = useState<{ open: boolean; edit?: Item | null }>({ open: false })
   const [detailItem, setDetailItem] = useState<Item | null>(null)
   const [consumeItem, setConsumeItem] = useState<Item | null>(null)
@@ -1255,34 +1250,21 @@ function GravPackApp() {
 
   function handleSaveItem(data: Parameters<React.ComponentProps<typeof AddItemModal>['onSave']>[0]) {
     if (data.id) {
-      // Edit
       setItems(items.map(i => i.id === data.id ? {
         ...i,
-        name: data.name,
-        category: data.category,
-        qty: data.qty,
-        unit: data.unit,
-        price: data.price,
-        expiry: data.expiry,
-        expiryType: data.expiryType,
-        location: data.location,
-        notes: data.notes,
+        name: data.name, category: data.category, qty: data.qty, unit: data.unit,
+        price: data.price, expiry: data.expiry, expiryType: data.expiryType,
+        location: data.location, notes: data.notes,
         priceHistory: data.priceHistory ?? i.priceHistory,
       } : i))
     } else {
-      // New
       const priceHistory: Item['priceHistory'] = data.price !== null
         ? [{ price: data.price!, date: new Date().toISOString().slice(0, 10) }]
         : []
       const item: Item = {
-        id: newId(),
-        created: new Date().toISOString(),
-        consumeLog: [],
-        depleted: false,
-        priceHistory,
-        ...data,
-        price: data.price,
-        expiry: data.expiry,
+        id: newId(), created: new Date().toISOString(),
+        consumeLog: [], depleted: false, priceHistory,
+        ...data, price: data.price, expiry: data.expiry,
       }
       setItems([...items, item])
     }
@@ -1305,7 +1287,9 @@ function GravPackApp() {
 
   function handleRestock(qty: number, price: number | null) {
     if (!restockItem) return
-    const priceHistory = price !== null ? [...restockItem.priceHistory, { price, date: new Date().toISOString().slice(0, 10) }] : restockItem.priceHistory
+    const priceHistory = price !== null
+      ? [...restockItem.priceHistory, { price, date: new Date().toISOString().slice(0, 10) }]
+      : restockItem.priceHistory
     setItems(items.map(i => i.id === restockItem.id ? {
       ...i, qty, price: price ?? i.price, depleted: false, priceHistory,
     } : i))
@@ -1350,17 +1334,14 @@ function GravPackApp() {
         {screen === 'readiness' && (
           <ReadinessScreen
             household={household}
+            items={items}
             onGoToStrategy={() => setScreen('strategy')}
             onGoToHousehold={() => setScreen('household')}
             onGoToSettings={() => setScreen('settings')}
           />
         )}
         {screen === 'strategy' && (
-          <StrategyScreen
-            household={household}
-            items={items}
-            onBack={() => setScreen('readiness')}
-          />
+          <StrategyScreen household={household} items={items} onBack={() => setScreen('readiness')} />
         )}
         {screen === 'household' && (
           <HouseholdScreen household={household} onChange={setHousehold} />

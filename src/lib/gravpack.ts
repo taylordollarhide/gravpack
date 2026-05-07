@@ -40,22 +40,22 @@ export interface Household {
   seniors: number
   dogs: number
   cats: number
-  bottled: number  // commercial sealed water cases (~6 gal each)
-  cans: number     // 6-gal food-grade cans
-  bob: boolean     // WaterBOB ~100 gal
-  tabs: boolean    // Aquatabs purification
-  sawyer: boolean  // Sawyer filter
+  bottled: number
+  cans: number
+  bob: boolean
+  tabs: boolean
+  sawyer: boolean
   lifestraw: boolean
-  jerry: boolean   // Jerrycan with filter
-  cal: number      // stored calories per day
-  batt: number     // portable battery packs
-  veg: boolean     // vegetarian/vegan
+  jerry: boolean
+  cal: number
+  batt: number
+  veg: boolean
   infant: boolean
-  gen: boolean     // generator
-  fak: boolean     // first aid kit
-  rx: boolean      // prescriptions in household
-  rxs: boolean     // 30-day rx supply ready
-  mob: boolean     // mobility limitations
+  gen: boolean
+  fak: boolean
+  rx: boolean
+  rxs: boolean
+  mob: boolean
 }
 
 export interface Scores {
@@ -71,9 +71,10 @@ export interface Scores {
   foodDetail: string
   powerDetail: string
   medicalDetail: string
-  // shelf-derived values for transparency
   shelfWaterGal: number
   shelfFoodCal: number
+  shelfMedicalDetail: string
+  shelfPowerDetail: string
 }
 
 export interface StrategyAction {
@@ -164,7 +165,6 @@ export function getExpiryStatus(expiry: string | null, expiryType?: ExpiryType):
   if (expiryType === 'best-by') {
     if (days < 0) return 'past-best-by'
     if (days < 30) return 'warning'
-    if (days < 90) return 'good'
     if (days < 365) return 'good'
     return 'long'
   }
@@ -184,16 +184,14 @@ export function getExpiryBadgeText(expiry: string | null, expiryType?: ExpiryTyp
     if (days < 30) return `Best by ${days}d`
     if (days < 90) return `Best by ${Math.floor(days / 30)}mo`
     if (days < 365) return `Best by ${Math.floor(days / 30)}mo`
-    const yrs = Math.floor(days / 365)
-    return `Best by ${yrs}yr+`
+    return `Best by ${Math.floor(days / 365)}yr+`
   }
   if (days < 0) return 'EXPIRED'
   if (days === 0) return 'Today'
   if (days < 30) return `${days}d left`
   if (days < 90) return `${Math.floor(days / 30)}mo`
   if (days < 365) return `${Math.floor(days / 30)}mo`
-  const yrs = Math.floor(days / 365)
-  return `${yrs}yr+`
+  return `${Math.floor(days / 365)}yr+`
 }
 
 export function formatDate(iso: string): string {
@@ -201,82 +199,190 @@ export function formatDate(iso: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-// ─── Shelf → water conversion ─────────────────────────────────────────────────
-// Converts Water category shelf items to estimated gallons.
-// Only counts non-depleted, non-expired items.
+// ─── Name matching helpers ────────────────────────────────────────────────────
 
-const WATER_GAL_PER_UNIT: Record<string, number> = {
-  gal:     1,       // 1 gallon jug
-  bottles: 0.26,    // ~1L bottle
-  units:   0.13,    // ~500ml default
-  cases:   3.2,     // 24 × 500ml
-  packs:   1.6,     // 12 × 500ml
-  lbs:     0,       // not water volume
-  oz:      0.0078,  // fluid oz → gal
-  cans:    0.26,    // ~1L can
+function nameContains(item: Item, ...terms: string[]): boolean {
+  const n = (item.name + ' ' + item.notes).toLowerCase()
+  return terms.some(t => n.includes(t.toLowerCase()))
+}
+
+function isActive(item: Item): boolean {
+  return !item.depleted && getExpiryStatus(item.expiry, item.expiryType) !== 'expired'
+}
+
+// ─── Shelf → water ────────────────────────────────────────────────────────────
+
+const WATER_GAL: Record<string, number> = {
+  gal: 1, bottles: 0.26, units: 0.13, cases: 3.2,
+  packs: 1.6, oz: 0.0078, cans: 0.26, lbs: 0,
 }
 
 export function shelfWaterGal(items: Item[]): number {
   return items
-    .filter(i => i.category === 'Water' && !i.depleted && getExpiryStatus(i.expiry, i.expiryType) !== 'expired')
-    .reduce((total, i) => {
-      const rate = WATER_GAL_PER_UNIT[i.unit] ?? 0.13
-      return total + i.qty * rate
-    }, 0)
+    .filter(i => i.category === 'Water' && isActive(i))
+    .reduce((t, i) => t + i.qty * (WATER_GAL[i.unit] ?? 0.13), 0)
 }
 
-// ─── Shelf → food conversion ──────────────────────────────────────────────────
-// Converts Food category shelf items to estimated total calories.
-// Only counts non-depleted, non-expired items.
+// ─── Shelf → food ────────────────────────────────────────────────────────────
 
-const FOOD_CAL_PER_UNIT: Record<string, number> = {
-  meals:  600,   // prepared meal
-  cans:   350,   // average canned good
-  lbs:   1600,   // grains/beans/rice per lb
-  boxes:  400,   // boxed goods
-  bags:   800,   // bag of dry goods
-  packs:  250,   // snack pack
-  units:  300,   // generic unit
-  rolls:  200,   // bread rolls etc
-  oz:      75,   // per oz of dry food
-  bottles:  0,   // not food calories
-  gal:      0,   // not food calories
-  tabs:     0,   // not food
+const FOOD_CAL: Record<string, number> = {
+  meals: 600, cans: 350, lbs: 1600, boxes: 400,
+  bags: 800, packs: 250, units: 300, rolls: 200,
+  oz: 75, bottles: 0, gal: 0, tabs: 0,
 }
 
 export function shelfFoodCal(items: Item[]): number {
   return items
-    .filter(i => i.category === 'Food' && !i.depleted && getExpiryStatus(i.expiry, i.expiryType) !== 'expired')
-    .reduce((total, i) => {
-      const rate = FOOD_CAL_PER_UNIT[i.unit] ?? 300
-      return total + i.qty * rate
-    }, 0)
+    .filter(i => i.category === 'Food' && isActive(i))
+    .reduce((t, i) => t + i.qty * (FOOD_CAL[i.unit] ?? 300), 0)
+}
+
+// ─── Shelf → medical ─────────────────────────────────────────────────────────
+
+export interface ShelfMedical {
+  kitCount: number        // stocked first aid / trauma kits
+  rxCount: number         // prescription / medication items
+  supplementCount: number // vitamins, supplements, natural remedies
+  expiredMedCount: number // expired medical items (deduct)
+  score: number
+  detail: string
+}
+
+export function shelfMedical(items: Item[]): ShelfMedical {
+  const medItems = items.filter(i => i.category === 'Medical')
+
+  const kitCount = medItems.filter(i =>
+    isActive(i) && nameContains(i, 'first aid', 'kit', 'trauma', 'ifak', 'med kit', 'medkit')
+  ).length
+
+  const rxCount = medItems.filter(i =>
+    isActive(i) && nameContains(i, 'prescription', 'rx', 'medication', 'medicine', 'antibiotic', 'epipen', 'insulin')
+  ).length
+
+  const supplementCount = medItems.filter(i =>
+    isActive(i) && nameContains(i, 'vitamin', 'supplement', 'mineral', 'probiotic', 'elderberry', 'zinc', 'magnesium', 'omega', 'natural', 'herb', 'remedy')
+  ).length
+
+  const expiredMedCount = medItems.filter(i =>
+    !i.depleted && getExpiryStatus(i.expiry, i.expiryType) === 'expired'
+  ).length
+
+  // Score calculation
+  // Kits: first kit = 40pts, each additional = 5pts (max 60)
+  const kitScore = Math.min(kitCount > 0 ? 40 + (kitCount - 1) * 5 : 0, 60)
+  // Rx: tracked rx items = 20pts
+  const rxScore = Math.min(rxCount * 10, 20)
+  // Supplements: meaningful but lower weight
+  const suppScore = Math.min(supplementCount * 3, 15)
+  // Expired deduction
+  const expiredDeduct = Math.min(expiredMedCount * 5, 20)
+
+  const score = Math.max(0, Math.min(kitScore + rxScore + suppScore - expiredDeduct, 100))
+
+  const parts: string[] = []
+  if (kitCount > 0) parts.push(`${kitCount} kit${kitCount > 1 ? 's' : ''} ✓`)
+  if (rxCount > 0) parts.push(`${rxCount} rx item${rxCount > 1 ? 's' : ''}`)
+  if (supplementCount > 0) parts.push(`${supplementCount} supplement${supplementCount > 1 ? 's' : ''}`)
+  if (expiredMedCount > 0) parts.push(`${expiredMedCount} expired`)
+  const detail = parts.length > 0 ? parts.join(' · ') : 'no medical items on shelf'
+
+  return { kitCount, rxCount, supplementCount, expiredMedCount, score, detail }
+}
+
+// ─── Shelf → power ───────────────────────────────────────────────────────────
+
+export interface ShelfPower {
+  hasGenerator: boolean
+  generatorFuelValid: boolean   // fuel on shelf, not expired
+  generatorFuelExpired: boolean // fuel on shelf but expired
+  hasSolar: boolean             // solar charger / panel
+  batteryPackCount: number      // power banks from shelf
+  score: number
+  detail: string
+}
+
+export function shelfPower(items: Item[], householdBatt: number, householdGen: boolean): ShelfPower {
+  const powerItems = items.filter(i => i.category === 'Power' && !i.depleted)
+
+  // Generator detection
+  const genItems = powerItems.filter(i => nameContains(i, 'generator', 'gen', 'genset'))
+  const hasGenerator = householdGen || genItems.length > 0
+
+  // Fuel detection — check for valid and expired separately
+  const fuelItems = powerItems.filter(i =>
+    nameContains(i, 'fuel', 'gas', 'gasoline', 'propane', 'diesel', 'kerosene', 'ethanol')
+  )
+  const validFuel = fuelItems.filter(i => isActive(i))
+  const expiredFuel = fuelItems.filter(i =>
+    !i.depleted && getExpiryStatus(i.expiry, i.expiryType) === 'expired'
+  )
+  const generatorFuelValid = validFuel.length > 0
+  const generatorFuelExpired = expiredFuel.length > 0 && validFuel.length === 0
+
+  // Solar detection
+  const solarItems = powerItems.filter(i =>
+    isActive(i) && nameContains(i, 'solar', 'goal zero', 'jackery', 'panel', 'photovoltaic', 'pv')
+  )
+  const hasSolar = solarItems.length > 0
+
+  // Battery packs from shelf
+  const shelfBattItems = powerItems.filter(i =>
+    isActive(i) && nameContains(i, 'battery', 'power bank', 'powerbank', 'anker', 'portable charger', 'battery pack')
+  )
+  const batteryPackCount = Math.max(householdBatt, shelfBattItems.reduce((t, i) => t + i.qty, 0))
+
+  // Score
+  let score = 0
+
+  // Battery packs: 18pts each up to 30
+  score += Math.min(batteryPackCount * 18, 30)
+
+  // Generator
+  if (hasGenerator) {
+    score += 25
+    if (generatorFuelValid) score += 15       // fuel confirmed on shelf
+    else if (generatorFuelExpired) score -= 10 // expired fuel = liability
+    else score += 5                            // generator but no fuel tracked
+  }
+
+  // Solar: 20pts + infinite fuel bonus
+  if (hasSolar) score += 20
+
+  // Bonus for having both generator and solar (full redundancy)
+  if (hasGenerator && hasSolar) score += 10
+
+  score = Math.min(Math.max(score, 0), 100)
+
+  const parts: string[] = []
+  if (batteryPackCount > 0) parts.push(`${batteryPackCount} battery pack${batteryPackCount > 1 ? 's' : ''}`)
+  if (hasGenerator) {
+    if (generatorFuelValid) parts.push('generator + fuel ✓')
+    else if (generatorFuelExpired) parts.push('generator · fuel expired ⚠')
+    else parts.push('generator · no fuel tracked')
+  }
+  if (hasSolar) parts.push('solar ✓')
+  const detail = parts.length > 0 ? parts.join(' · ') : 'no power tracked'
+
+  return {
+    hasGenerator, generatorFuelValid, generatorFuelExpired,
+    hasSolar, batteryPackCount, score, detail
+  }
 }
 
 // ─── Scoring engine ───────────────────────────────────────────────────────────
-// items param is optional — pass shelf items to auto-derive water/food values.
-// Shelf-derived values are blended with household manual entries (higher wins).
 
 export function calcScores(h: Household, items: Item[] = []): Scores {
   const dailyWater = h.adults * 1 + h.seniors * 1 + h.dogs * 1 + h.cats * 0.3
 
   // ── Water ──
-  // Household manual entries
   const commercialGal = h.bottled * 6
   const treatmentPts = (h.tabs && h.sawyer) ? 25 : h.sawyer ? 20 : h.lifestraw ? 15 : h.tabs ? 8 : 0
   const personalGal = treatmentPts > 0 ? h.cans * 6 : 0
   const bobGal = (h.bob && treatmentPts > 0) ? 100 : h.bob ? 50 : 0
   const householdWaterGal = commercialGal + personalGal + bobGal
-
-  // Shelf-derived water
   const derivedWaterGal = shelfWaterGal(items)
-
-  // Use the higher of manual or shelf-derived, plus the other as a supplement
-  // This way manual entries and shelf both contribute — shelf fills in what manual misses
   const totalSafeWater = Math.max(householdWaterGal, derivedWaterGal) +
-    (householdWaterGal > 0 && derivedWaterGal > 0
-      ? Math.min(householdWaterGal, derivedWaterGal) * 0.5  // partial credit for having both sources
-      : 0)
+    (householdWaterGal > 0 && derivedWaterGal > 0 ? Math.min(householdWaterGal, derivedWaterGal) * 0.5 : 0)
 
   const waterDays = dailyWater > 0 ? totalSafeWater / dailyWater : 0
   const waterDayScore = Math.min(waterDays / 30, 1) * 60
@@ -285,30 +391,17 @@ export function calcScores(h: Household, items: Item[] = []): Scores {
   const waterScore = Math.min(Math.round(waterDayScore + waterTreatScore + waterMobileScore), 100)
 
   const waterSourceLabel = derivedWaterGal > 0 && householdWaterGal > 0
-    ? 'shelf + household'
-    : derivedWaterGal > 0
-    ? 'from shelf'
-    : 'from household'
-
+    ? 'shelf + household' : derivedWaterGal > 0 ? 'from shelf' : 'from household'
   const waterDetail = dailyWater > 0
     ? `${waterDays.toFixed(1)}d · ${totalSafeWater.toFixed(0)} gal · ${waterSourceLabel}`
     : 'configure household'
 
   // ── Food ──
   const dailyCal = h.adults * 2000 + h.kids * 1400 + h.seniors * 1600
-
-  // Shelf-derived calories (total, not per day)
   const derivedTotalCal = shelfFoodCal(items)
-
-  // Household manual entry is cal/day × 30 equivalent stored
-  // h.cal represents daily available calories from stored food
-  const householdTotalCal = h.cal * 30  // convert daily rate to total stored equiv
-
-  // Use higher of the two
+  const householdTotalCal = h.cal * 30
   const totalStoredCal = Math.max(householdTotalCal, derivedTotalCal) +
-    (householdTotalCal > 0 && derivedTotalCal > 0
-      ? Math.min(householdTotalCal, derivedTotalCal) * 0.3
-      : 0)
+    (householdTotalCal > 0 && derivedTotalCal > 0 ? Math.min(householdTotalCal, derivedTotalCal) * 0.3 : 0)
 
   const foodDays = dailyCal > 0 && totalStoredCal > 0 ? totalStoredCal / dailyCal : 0
   let foodScore = Math.min(Math.round((foodDays / 14) * 80), 80)
@@ -317,33 +410,44 @@ export function calcScores(h: Household, items: Item[] = []): Scores {
   foodScore = Math.min(foodScore, 100)
 
   const foodSourceLabel = derivedTotalCal > 0 && householdTotalCal > 0
-    ? 'shelf + household'
-    : derivedTotalCal > 0
-    ? 'from shelf'
-    : 'from household'
-
+    ? 'shelf + household' : derivedTotalCal > 0 ? 'from shelf' : 'from household'
   const foodDetail = dailyCal > 0 && totalStoredCal > 0
     ? `${foodDays.toFixed(1)}d · ${Math.round(totalStoredCal / 1000)}k cal · ${foodSourceLabel}`
-    : dailyCal === 0
-    ? 'configure household'
-    : 'no food tracked'
+    : dailyCal === 0 ? 'configure household' : 'no food tracked'
 
-  // ── Power ──
-  const powerScore = Math.min(h.batt * 18 + (h.gen ? 30 : 0), 100)
-  const powerDetail = `${h.batt} battery pack${h.batt !== 1 ? 's' : ''}${h.gen ? ' + generator' : ''}`
+  // ── Power (shelf-aware) ──
+  const sp = shelfPower(items, h.batt, h.gen)
+  // Blend: household toggle adds base generator pts if not already detected on shelf
+  let powerScore = sp.score
+  // If household has batt slider but shelf doesn't detect packs, use household value
+  if (h.batt > 0 && sp.batteryPackCount === 0) {
+    powerScore = Math.min(powerScore + h.batt * 18, 100)
+  }
+  powerScore = Math.min(powerScore, 100)
+  const powerDetail = sp.detail !== 'no power tracked'
+    ? sp.detail
+    : h.batt > 0 ? `${h.batt} battery pack${h.batt > 1 ? 's' : ''}` : 'no power tracked'
 
-  // ── Medical ──
-  let medScore = 0
-  if (h.fak) medScore += 50
-  if (h.rx && h.rxs) medScore += 40
-  else if (h.rx && !h.rxs) medScore = Math.max(medScore - 20, 0)
-  if (!h.fak && !h.rx) medScore = 0
+  // ── Medical (shelf-aware) ──
+  const sm = shelfMedical(items)
+  // Blend with household toggles
+  let medScore = sm.score
+  // Household fak toggle adds base if shelf has no kits detected
+  if (h.fak && sm.kitCount === 0) medScore = Math.min(medScore + 40, 100)
+  // Household rx flags
+  if (h.rx && h.rxs && sm.rxCount === 0) medScore = Math.min(medScore + 20, 100)
+  else if (h.rx && !h.rxs && sm.rxCount === 0) medScore = Math.max(medScore - 15, 0)
   medScore = Math.min(medScore, 100)
 
-  const medDetail = [
-    h.fak ? 'first aid kit ✓' : 'no first aid kit',
-    h.rx ? (h.rxs ? '30d rx ✓' : 'rx gap!') : ''
-  ].filter(Boolean).join(' · ')
+  // Build medical detail merging shelf + household
+  const medParts: string[] = []
+  if (sm.kitCount > 0) medParts.push(`${sm.kitCount} kit${sm.kitCount > 1 ? 's' : ''} ✓`)
+  else if (h.fak) medParts.push('kit ✓ (household)')
+  if (sm.rxCount > 0) medParts.push(`${sm.rxCount} rx ✓`)
+  else if (h.rx) medParts.push(h.rxs ? '30d rx ✓' : 'rx gap!')
+  if (sm.supplementCount > 0) medParts.push(`${sm.supplementCount} supplement${sm.supplementCount > 1 ? 's' : ''}`)
+  if (sm.expiredMedCount > 0) medParts.push(`${sm.expiredMedCount} expired ⚠`)
+  const medDetail = medParts.length > 0 ? medParts.join(' · ') : 'no medical tracked'
 
   // ── Overall ──
   const overall = Math.round(waterScore * 0.3 + foodScore * 0.3 + powerScore * 0.2 + medScore * 0.2)
@@ -357,8 +461,8 @@ export function calcScores(h: Household, items: Item[] = []): Scores {
     overall, water: waterScore, food: foodScore, power: powerScore, medical: medScore,
     coverageDays: finalCoverage, waterDays, foodDays,
     waterDetail, foodDetail, powerDetail, medicalDetail: medDetail,
-    shelfWaterGal: derivedWaterGal,
-    shelfFoodCal: derivedTotalCal,
+    shelfWaterGal: derivedWaterGal, shelfFoodCal: derivedTotalCal,
+    shelfMedicalDetail: sm.detail, shelfPowerDetail: sp.detail,
   }
 }
 
@@ -373,16 +477,18 @@ export function scoreColor(score: number): string {
 
 export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
   const actions: StrategyAction[] = []
-  const scores = calcScores(h, items)  // pass items for shelf-aware scoring
+  const scores = calcScores(h, items)
+  const sm = shelfMedical(items)
+  const sp = shelfPower(items, h.batt, h.gen)
   const dailyWater = h.adults * 1 + h.seniors * 1 + h.dogs * 1 + h.cats * 0.3
   const dailyCal = h.adults * 2000 + h.kids * 1400 + h.seniors * 1600
 
-  // Water actions
+  // ── Water ──
   const totalWaterGal = (h.bottled * 6) + scores.shelfWaterGal
   if (dailyWater > 0 && totalWaterGal < dailyWater * 3) {
     actions.push({
       priority: 'urgent', title: 'Buy bottled water cases now',
-      why: `Under 3 days of safe, ready-to-use water · fastest path`,
+      why: 'Under 3 days of safe, ready-to-use water · fastest path',
       cost: '~$1/gal · ~$18–36', impact: '+20–30 pts', category: 'Water'
     })
   } else if (dailyWater > 0 && scores.waterDays < 14) {
@@ -397,7 +503,7 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
     actions.push({
       priority: 'urgent', title: 'Add treatment for personal storage',
       why: 'Personal cans require purification before use',
-      cost: '~$8 tabs · $25 Sawyer', impact: '+15–20 pts', category: 'Water'
+      cost: '~$8 tabs · $25 Sawyer · $20 Lifestraw', impact: '+15–20 pts', category: 'Water'
     })
   }
 
@@ -406,14 +512,6 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
       priority: 'high', title: 'Add water purification',
       why: 'No treatment method — limits usable water options',
       cost: '~$8–25', impact: '+8–20 pts', category: 'Water'
-    })
-  }
-
-  if (h.cans === 0 && h.bottled < 5 && scores.shelfWaterGal < 20) {
-    actions.push({
-      priority: 'high', title: 'Add 6-gal food-grade cans',
-      why: 'Reusable personal storage — fill from tap, treat before use',
-      cost: '~$8–12/can at Walmart', impact: '+5–15 pts', category: 'Water'
     })
   }
 
@@ -433,7 +531,7 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
     })
   }
 
-  // Food actions — use shelf-aware food days
+  // ── Food ──
   if (dailyCal > 0 && scores.foodDays < 3) {
     actions.push({
       priority: 'urgent', title: 'Stock 7-day food supply',
@@ -450,11 +548,10 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
     })
   }
 
-  // Suggest adding food to shelf if none tracked
   if (scores.shelfFoodCal === 0 && h.cal === 0) {
     actions.push({
       priority: 'urgent', title: 'Add food items to your shelf',
-      why: 'No food tracked — shelf and household both empty · score cannot calculate',
+      why: 'No food tracked — score cannot calculate coverage days',
       cost: 'free to track', impact: 'unlocks food score', category: 'Food'
     })
   }
@@ -467,14 +564,14 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
     })
   }
 
-  // Power actions
-  if (h.batt === 0) {
+  // ── Power ──
+  if (sp.batteryPackCount === 0 && h.batt === 0) {
     actions.push({
       priority: 'urgent', title: 'Buy 1 portable battery bank',
-      why: 'No backup power — critical gap',
+      why: 'No backup power detected on shelf or household',
       cost: '~$25–35', impact: '+18 pts', category: 'Power'
     })
-  } else if (h.batt < 2) {
+  } else if (sp.batteryPackCount < 2 && h.batt < 2) {
     actions.push({
       priority: 'high', title: 'Add a second battery bank',
       why: 'More capacity = more coverage days',
@@ -482,28 +579,68 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
     })
   }
 
-  if (!h.gen && h.batt >= 2) {
+  if (sp.generatorFuelExpired) {
+    actions.push({
+      priority: 'urgent', title: 'Replace expired generator fuel',
+      why: 'Generator fuel on shelf is expired · generator is currently non-functional',
+      cost: 'varies by fuel type', impact: '+15 pts', category: 'Power'
+    })
+  }
+
+  if (sp.hasGenerator && !sp.generatorFuelValid && !sp.generatorFuelExpired) {
+    actions.push({
+      priority: 'high', title: 'Add generator fuel to your shelf',
+      why: 'Generator detected but no fuel tracked — log fuel with expiry date',
+      cost: 'varies', impact: '+15 pts', category: 'Power'
+    })
+  }
+
+  if (!sp.hasSolar) {
+    actions.push({
+      priority: 'med', title: 'Add portable solar (Goal Zero or similar)',
+      why: 'Infinite fuel source · complements generator and battery packs',
+      cost: '~$50–300', impact: '+20 pts', category: 'Power'
+    })
+  }
+
+  if (!sp.hasGenerator && !h.gen && sp.batteryPackCount >= 2) {
     actions.push({
       priority: 'med', title: 'Consider a generator',
-      why: 'Battery banks cover phones — generator covers everything',
-      cost: '~$150–500', impact: '+30 pts', category: 'Power'
+      why: 'Battery banks cover phones — generator covers appliances and fuel storage',
+      cost: '~$150–800', impact: '+25 pts', category: 'Power'
     })
   }
 
-  // Medical actions
-  if (!h.fak) {
+  // ── Medical ──
+  if (sm.kitCount === 0 && !h.fak) {
     actions.push({
       priority: 'urgent', title: 'Stock a first aid kit',
-      why: 'No kit — medical score critically low',
-      cost: '~$25–60', impact: '+50 pts', category: 'Medical'
+      why: 'No kit detected on shelf or household — medical score critically low',
+      cost: '~$25–60', impact: '+40 pts', category: 'Medical'
     })
   }
 
-  if (h.rx && !h.rxs) {
+  if (sm.expiredMedCount > 0) {
+    actions.push({
+      priority: 'urgent', title: `Replace ${sm.expiredMedCount} expired medical item${sm.expiredMedCount > 1 ? 's' : ''}`,
+      why: 'Expired medical supplies detected on shelf',
+      cost: 'varies', impact: '+5–15 pts', category: 'Medical'
+    })
+  }
+
+  if (h.rx && !h.rxs && sm.rxCount === 0) {
     actions.push({
       priority: 'urgent', title: 'Get 30-day prescription supply',
-      why: 'Prescriptions flagged but no backup supply on hand',
-      cost: 'varies', impact: '+40 pts', category: 'Medical'
+      why: 'Prescriptions flagged but no backup supply on hand or shelf',
+      cost: 'varies', impact: '+20 pts', category: 'Medical'
+    })
+  }
+
+  if (sm.supplementCount === 0) {
+    actions.push({
+      priority: 'med', title: 'Add vitamins and supplements to shelf',
+      why: 'No supplements tracked — immune support and wellness gaps',
+      cost: '~$30–80', impact: '+10–15 pts', category: 'Medical'
     })
   }
 
@@ -515,8 +652,11 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
     })
   }
 
-  // Expired item actions
-  const expired = items.filter(i => !i.depleted && getExpiryStatus(i.expiry, i.expiryType) === 'expired')
+  // ── Expired items ──
+  const expired = items.filter(i =>
+    !i.depleted && i.category !== 'Medical' && // medical handled above
+    getExpiryStatus(i.expiry, i.expiryType) === 'expired'
+  )
   if (expired.length > 0) {
     actions.push({
       priority: 'urgent',
@@ -585,11 +725,10 @@ export function parseCSV(text: string): Partial<Item>[] {
 
 function splitCSVLine(line: string): string[] {
   const result: string[] = []
-  let cur = ''
-  let inQ = false
+  let cur = '', inQ = false
   for (let i = 0; i < line.length; i++) {
     const c = line[i]
-    if (c === '"' && !inQ) { inQ = true }
+    if (c === '"' && !inQ) inQ = true
     else if (c === '"' && inQ) {
       if (line[i + 1] === '"') { cur += '"'; i++ }
       else inQ = false
