@@ -5,7 +5,7 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-visual' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content' },
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
@@ -86,8 +86,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             0%, 100% { opacity: 0.4; }
             50% { opacity: 1; }
           }
-          { name: 'viewport', content: 'width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content' 
-           },
         ` }} />
       </head>
       <body>
