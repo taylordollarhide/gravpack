@@ -11,7 +11,7 @@ export const Route = createRootRoute({
       { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
       { name: 'apple-mobile-web-app-title', content: 'GravPack' },
       { name: 'application-name', content: 'GravPack' },
-      { name: 'theme-color', content: '#0d1117' },
+      { name: 'theme-color', content: '#080b10' },
       { title: 'GravPack — Know What You Have' },
     ],
     links: [
@@ -35,7 +35,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           #gp-splash {
             position: fixed;
             inset: 0;
-            background: #0d1117;
+            background: #080b10;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -66,15 +66,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           .gp-splash-spinner {
             width: 36px;
             height: 36px;
-            border: 2px solid #21262d;
-            border-top-color: #C9A84C;
+            border: 2px solid rgba(255,255,255,.10);
+            border-top-color: #e31c23;
             border-radius: 50%;
             animation: gp-spin 0.8s linear infinite;
           }
           .gp-splash-label {
-            font-family: 'DM Mono', 'Courier New', monospace;
+            font-family: 'Inter', 'Helvetica Neue', sans-serif;
             font-size: 11px;
-            color: #484f58;
+            font-weight: 600;
+            color: #6b7480;
             text-transform: uppercase;
             letter-spacing: 2px;
             animation: gp-pulse 1.6s ease-in-out infinite;
