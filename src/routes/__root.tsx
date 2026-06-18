@@ -41,6 +41,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <meta property="og:title" content="GravPack — Know What You Have" />
+        <meta property="og:description" content="Preparedness without the paranoia. Track your pantry, water, medications, and go-bags in one clean system." />
+        <meta property="og:image" content="https://gravpackwebsite.netlify.app/og-image.png" />
+        <meta property="og:image:width" content="1270" />
+        <meta property="og:image:height" content="840" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://gravpackwebsite.netlify.app/og-image.png" />
         <style dangerouslySetInnerHTML={{ __html: `
           #gp-splash {
             position: fixed;
