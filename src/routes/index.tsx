@@ -829,6 +829,119 @@ const BLANK_FORM: AddItemForm = {
   price: '', expiry: '', expiryType: 'none', location: '', notes: '',
 }
 
+// ─── Barcode / date helpers ───────────────────────────────────────────────────
+
+declare class BarcodeDetector {
+  constructor(options?: { formats: string[] })
+  detect(image: ImageBitmapSource): Promise<Array<{ rawValue: string }>>
+  static getSupportedFormats(): Promise<string[]>
+}
+
+const EXPIRY_PRESETS: Record<string, { label: string; months: number }[]> = {
+  Food:    [{ label: '+3mo', months: 3 },  { label: '+1yr', months: 12 }, { label: '+2yr', months: 24 }, { label: '+3yr', months: 36 }],
+  Water:   [{ label: '+1yr', months: 12 }, { label: '+2yr', months: 24 }, { label: '+5yr', months: 60 }],
+  Medical: [{ label: '+3mo', months: 3 },  { label: '+6mo', months: 6 },  { label: '+1yr', months: 12 }, { label: '+2yr', months: 24 }],
+  Power:   [{ label: '+1yr', months: 12 }, { label: '+2yr', months: 24 }, { label: '+5yr', months: 60 }],
+  Tools:   [{ label: '+1yr', months: 12 }, { label: '+2yr', months: 24 }, { label: '+5yr', months: 60 }],
+  Docs:    [{ label: '+1yr', months: 12 }, { label: '+5yr', months: 60 }, { label: '+10yr', months: 120 }],
+}
+
+function addMonths(months: number): string {
+  const d = new Date()
+  d.setMonth(d.getMonth() + months)
+  return d.toISOString().slice(0, 10)
+}
+
+function mapOFFCategory(tags: string[]): Category {
+  const t = tags.join(' ').toLowerCase()
+  if (/water|eau|agua/.test(t)) return 'Water'
+  if (/medication|drug|medicine|supplement|vitamin|pharmacy/.test(t)) return 'Medical'
+  return 'Food'
+}
+
+// ─── Barcode Scanner ──────────────────────────────────────────────────────────
+
+function BarcodeScanner({ onScan, onClose }: {
+  onScan: (name: string, category: Category) => void
+  onClose: () => void
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const detectorRef = useRef<InstanceType<typeof BarcodeDetector> | null>(null)
+  const rafRef = useRef<number>(0)
+  const [status, setStatus] = useState<'scanning' | 'fetching' | 'error'>('scanning')
+  const [errorMsg, setErrorMsg] = useState('')
+
+  const stop = useCallback(() => {
+    cancelAnimationFrame(rafRef.current)
+    streamRef.current?.getTracks().forEach(t => t.stop())
+  }, [])
+
+  useEffect(() => {
+    async function start() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        streamRef.current = stream
+        if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play() }
+        detectorRef.current = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] })
+        tick()
+      } catch {
+        setErrorMsg('Camera access denied or not available')
+        setStatus('error')
+      }
+    }
+    start()
+    return stop
+  }, [stop])
+
+  async function tick() {
+    if (!videoRef.current || !detectorRef.current) return
+    try {
+      const barcodes = await detectorRef.current.detect(videoRef.current)
+      if (barcodes.length > 0) {
+        cancelAnimationFrame(rafRef.current)
+        setStatus('fetching')
+        await lookup(barcodes[0].rawValue)
+        return
+      }
+    } catch { /* detector not ready yet */ }
+    rafRef.current = requestAnimationFrame(tick)
+  }
+
+  async function lookup(barcode: string) {
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
+      const data = await res.json()
+      if (data.status === 1 && data.product) {
+        const p = data.product
+        const name = p.product_name_en || p.product_name || ''
+        const category = mapOFFCategory(p.categories_tags || [])
+        stop()
+        onScan(name ? toTitleCase(name) : '', category)
+      } else {
+        setErrorMsg('Product not found — enter name manually')
+        setStatus('error')
+      }
+    } catch {
+      setErrorMsg('Could not reach product database')
+      setStatus('error')
+    }
+  }
+
+  return (
+    <div className="scanner-overlay">
+      <video ref={videoRef} className="scanner-video" playsInline muted />
+      <div className="scanner-frame" />
+      <div className="scanner-hint">
+        {status === 'scanning' && 'Point camera at barcode'}
+        {status === 'fetching' && 'Looking up product…'}
+        {status === 'error' && errorMsg}
+      </div>
+      <button className="scanner-close" onClick={() => { stop(); onClose() }}>✕ Cancel</button>
+    </div>
+  )
+}
+
 function AddItemModal({
   initial, onSave, onClose,
 }: {
@@ -837,6 +950,8 @@ function AddItemModal({
   onClose: () => void
 }) {
   const [step, setStep] = useState(0)
+  const [showScanner, setShowScanner] = useState(false)
+  const canScan = typeof window !== 'undefined' && 'BarcodeDetector' in window
   const [form, setForm] = useState<AddItemForm>(() => initial ? {
     name: initial.name,
     category: initial.category,
@@ -886,6 +1001,16 @@ function AddItemModal({
   const stepLabels = ['Name & Category', 'Quantity & Price', 'Location & Notes']
 
   return (
+    <>
+    {showScanner && (
+      <BarcodeScanner
+        onScan={(name, category) => {
+          setForm(f => ({ ...f, name, category }))
+          setShowScanner(false)
+        }}
+        onClose={() => setShowScanner(false)}
+      />
+    )}
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div className="modal-handle" />
@@ -900,6 +1025,11 @@ function AddItemModal({
 
         {step === 0 && (
           <>
+            {canScan && (
+              <button className="scan-btn" onClick={() => setShowScanner(true)}>
+                <span>📷</span> Scan barcode
+              </button>
+            )}
             <div className="field-group">
               <div className="field-label">Item name</div>
               <input
@@ -907,7 +1037,6 @@ function AddItemModal({
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: toTitleCase(e.target.value) }))}
                 placeholder="e.g. Canned Tuna"
-              
               />
             </div>
             <div className="field-group">
@@ -974,6 +1103,17 @@ function AddItemModal({
             {form.expiryType !== 'none' && (
               <div className="field-group">
                 <div className="field-label">{form.expiryType === 'best-by' ? 'Best by date' : 'Expiration date'}</div>
+                <div className="expiry-presets">
+                  {(EXPIRY_PRESETS[form.category] || EXPIRY_PRESETS['Food']).map(p => (
+                    <button
+                      key={p.label}
+                      className={`expiry-preset${form.expiry === addMonths(p.months) ? ' selected' : ''}`}
+                      onClick={() => setForm(f => ({ ...f, expiry: addMonths(p.months) }))}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
                 <input className="field-input" type="date" value={form.expiry} onChange={set('expiry')} />
               </div>
             )}
@@ -1022,6 +1162,7 @@ function AddItemModal({
         <button className="btn-ghost" onClick={onClose}>Cancel</button>
       </div>
     </div>
+    </>
   )
 }
 

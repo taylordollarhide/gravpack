@@ -642,3 +642,62 @@ select.field-input option { background: var(--bg2); color: var(--t1); }
 
 /* ─── BACK BTN ─── */
 .back-btn { display: flex; align-items: center; gap: 6px; background: none; border: none; color: var(--accent); font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; }
+
+/* ─── SCAN BUTTON ─── */
+.scan-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 4px 16px 12px; padding: 13px;
+  border-radius: 999px; border: 1.5px dashed rgba(227,28,35,.5);
+  background: rgba(227,28,35,.07); color: var(--accent);
+  font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer;
+  width: calc(100% - 32px); transition: background 120ms;
+}
+.scan-btn:active { background: rgba(227,28,35,.14); }
+
+/* ─── BARCODE SCANNER OVERLAY ─── */
+.scanner-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #000; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.scanner-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover;
+}
+.scanner-frame {
+  position: relative; z-index: 1;
+  width: 240px; height: 160px; border-radius: 18px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.55);
+  border: 2px solid var(--accent);
+}
+.scanner-hint {
+  position: absolute; bottom: 110px; left: 0; right: 0;
+  text-align: center; color: #fff;
+  font-family: var(--sans); font-size: 14px; font-weight: 500;
+  background: rgba(0,0,0,.5); padding: 10px 20px;
+}
+.scanner-close {
+  position: absolute; bottom: 48px;
+  padding: 14px 40px; border-radius: 999px;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+  color: #fff; font-family: var(--sans); font-size: 15px; font-weight: 600;
+  cursor: pointer;
+}
+
+/* ─── EXPIRY PRESETS ─── */
+.expiry-presets {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.expiry-preset {
+  padding: 7px 14px; border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  color: var(--t2); font-family: var(--sans); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background 100ms, border-color 100ms, color 100ms;
+}
+[data-theme="light"] .expiry-preset { border-color: rgba(0,0,0,.14); background: rgba(0,0,0,.04); }
+.expiry-preset.selected {
+  background: rgba(227,28,35,.12); border-color: rgba(227,28,35,.5);
+  color: var(--accent);
+}
+.expiry-preset:active { opacity: .7; }
