@@ -676,11 +676,58 @@ select.field-input option { background: var(--bg2); color: var(--t1); }
   font-family: var(--sans); font-size: 14px; font-weight: 500;
   background: rgba(0,0,0,.5); padding: 10px 20px;
 }
+.scanner-label {
+  position: absolute; bottom: 44%; left: 0; right: 0;
+  text-align: center; color: rgba(255,255,255,.7);
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  letter-spacing: .01em;
+}
 .scanner-close {
   position: absolute; bottom: 48px;
   padding: 14px 40px; border-radius: 999px;
   background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
   color: #fff; font-family: var(--sans); font-size: 15px; font-weight: 600;
+  cursor: pointer;
+}
+.scanner-lookup-card {
+  position: relative; z-index: 2;
+  background: rgba(16,21,29,.95); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 24px; padding: 28px 28px 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: min(300px, 80vw);
+}
+.scanner-error-card { border-color: rgba(227,28,35,.35); }
+.scanner-spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.12);
+  border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+  margin-bottom: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.scanner-error-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(227,28,35,.15); border: 1.5px solid rgba(227,28,35,.4);
+  color: var(--accent); font-size: 16px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px;
+}
+.scanner-lookup-title {
+  font-family: var(--sans); font-size: 15px; font-weight: 700;
+  color: #f7f8fa; text-align: center; line-height: 1.3;
+}
+.scanner-lookup-code {
+  font-family: var(--mono, monospace); font-size: 11px;
+  color: var(--t3); letter-spacing: .08em;
+}
+.scanner-lookup-sub {
+  font-family: var(--sans); font-size: 13px; color: var(--t3);
+  margin-top: 2px;
+}
+.scanner-retry-btn {
+  margin-top: 12px; padding: 10px 28px; border-radius: 999px;
+  background: rgba(227,28,35,.1); border: 1.5px solid rgba(227,28,35,.4);
+  color: var(--accent); font-family: var(--sans); font-size: 14px; font-weight: 600;
   cursor: pointer;
 }
 

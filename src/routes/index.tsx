@@ -865,14 +865,15 @@ function BarcodeScanner({ onScan, onClose }: {
   const doneRef = useRef(false)
   const [status, setStatus] = useState<'scanning' | 'fetching' | 'error'>('scanning')
   const [errorMsg, setErrorMsg] = useState('')
+  const [scannedCode, setScannedCode] = useState('')
 
   function stopScanner() {
     try { controlsRef.current?.stop() } catch { /* ignore */ }
   }
 
-  useEffect(() => {
+  function startScanner() {
+    doneRef.current = false
     const reader = new BrowserMultiFormatReader()
-
     reader.decodeFromConstraints(
       { video: { facingMode: { ideal: 'environment' } } },
       videoRef.current!,
@@ -880,8 +881,10 @@ function BarcodeScanner({ onScan, onClose }: {
         if (!result || doneRef.current) return
         doneRef.current = true
         stopScanner()
+        const code = result.getText()
+        setScannedCode(code)
         setStatus('fetching')
-        await lookup(result.getText())
+        await lookup(code)
       }
     ).then(controls => {
       controlsRef.current = controls
@@ -889,7 +892,10 @@ function BarcodeScanner({ onScan, onClose }: {
       setErrorMsg('Camera access denied or unavailable')
       setStatus('error')
     })
+  }
 
+  useEffect(() => {
+    startScanner()
     return stopScanner
   }, [])
 
@@ -915,12 +921,35 @@ function BarcodeScanner({ onScan, onClose }: {
   return (
     <div className="scanner-overlay">
       <video ref={videoRef} className="scanner-video" playsInline muted autoPlay />
-      <div className="scanner-frame" />
-      <div className="scanner-hint">
-        {status === 'scanning' && 'Point camera at barcode'}
-        {status === 'fetching' && 'Looking up product…'}
-        {status === 'error' && errorMsg}
-      </div>
+
+      {status === 'scanning' && (
+        <>
+          <div className="scanner-frame" />
+          <div className="scanner-label">Align barcode inside the frame</div>
+        </>
+      )}
+
+      {status === 'fetching' && (
+        <div className="scanner-lookup-card">
+          <div className="scanner-spinner" />
+          <div className="scanner-lookup-title">Barcode found</div>
+          <div className="scanner-lookup-code">{scannedCode}</div>
+          <div className="scanner-lookup-sub">Looking up product…</div>
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div className="scanner-lookup-card scanner-error-card">
+          <div className="scanner-error-icon">✕</div>
+          <div className="scanner-lookup-title">{errorMsg}</div>
+          <button className="scanner-retry-btn" onClick={() => {
+            setScannedCode('')
+            setStatus('scanning')
+            startScanner()
+          }}>Try again</button>
+        </div>
+      )}
+
       <button className="scanner-close" onClick={() => { stopScanner(); onClose() }}>✕ Cancel</button>
     </div>
   )
