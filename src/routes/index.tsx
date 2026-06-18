@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { BrowserMultiFormatReader } from '@zxing/browser'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   type Item, type Household, type Category, type Screen, type ExpiryType,
@@ -831,12 +832,6 @@ const BLANK_FORM: AddItemForm = {
 
 // ─── Barcode / date helpers ───────────────────────────────────────────────────
 
-declare class BarcodeDetector {
-  constructor(options?: { formats: string[] })
-  detect(image: ImageBitmapSource): Promise<Array<{ rawValue: string }>>
-  static getSupportedFormats(): Promise<string[]>
-}
-
 const EXPIRY_PRESETS: Record<string, { label: string; months: number }[]> = {
   Food:    [{ label: '+3mo', months: 3 },  { label: '+1yr', months: 12 }, { label: '+2yr', months: 24 }, { label: '+3yr', months: 36 }],
   Water:   [{ label: '+1yr', months: 12 }, { label: '+2yr', months: 24 }, { label: '+5yr', months: 60 }],
@@ -866,47 +861,35 @@ function BarcodeScanner({ onScan, onClose }: {
   onClose: () => void
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const detectorRef = useRef<InstanceType<typeof BarcodeDetector> | null>(null)
-  const rafRef = useRef<number>(0)
+  const readerRef = useRef<BrowserMultiFormatReader | null>(null)
   const [status, setStatus] = useState<'scanning' | 'fetching' | 'error'>('scanning')
   const [errorMsg, setErrorMsg] = useState('')
 
   const stop = useCallback(() => {
-    cancelAnimationFrame(rafRef.current)
-    streamRef.current?.getTracks().forEach(t => t.stop())
+    readerRef.current?.reset()
   }, [])
 
   useEffect(() => {
-    async function start() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        streamRef.current = stream
-        if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play() }
-        detectorRef.current = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] })
-        tick()
-      } catch {
-        setErrorMsg('Camera access denied or not available')
-        setStatus('error')
-      }
-    }
-    start()
-    return stop
-  }, [stop])
+    const reader = new BrowserMultiFormatReader()
+    readerRef.current = reader
 
-  async function tick() {
-    if (!videoRef.current || !detectorRef.current) return
-    try {
-      const barcodes = await detectorRef.current.detect(videoRef.current)
-      if (barcodes.length > 0) {
-        cancelAnimationFrame(rafRef.current)
+    reader.decodeFromConstraints(
+      { video: { facingMode: 'environment' } },
+      videoRef.current!,
+      async (result, err) => {
+        if (!result) return
+        if (err) return
+        reader.reset()
         setStatus('fetching')
-        await lookup(barcodes[0].rawValue)
-        return
+        await lookup(result.getText())
       }
-    } catch { /* detector not ready yet */ }
-    rafRef.current = requestAnimationFrame(tick)
-  }
+    ).catch(() => {
+      setErrorMsg('Camera access denied or not available')
+      setStatus('error')
+    })
+
+    return () => reader.reset()
+  }, [])
 
   async function lookup(barcode: string) {
     try {
@@ -916,7 +899,6 @@ function BarcodeScanner({ onScan, onClose }: {
         const p = data.product
         const name = p.product_name_en || p.product_name || ''
         const category = mapOFFCategory(p.categories_tags || [])
-        stop()
         onScan(name ? toTitleCase(name) : '', category)
       } else {
         setErrorMsg('Product not found — enter name manually')
@@ -951,7 +933,6 @@ function AddItemModal({
 }) {
   const [step, setStep] = useState(0)
   const [showScanner, setShowScanner] = useState(false)
-  const canScan = typeof window !== 'undefined' && 'BarcodeDetector' in window
   const [form, setForm] = useState<AddItemForm>(() => initial ? {
     name: initial.name,
     category: initial.category,
@@ -1025,11 +1006,9 @@ function AddItemModal({
 
         {step === 0 && (
           <>
-            {canScan && (
-              <button className="scan-btn" onClick={() => setShowScanner(true)}>
-                <span>📷</span> Scan barcode
-              </button>
-            )}
+            <button className="scan-btn" onClick={() => setShowScanner(true)}>
+              <span>📷</span> Scan barcode
+            </button>
             <div className="field-group">
               <div className="field-label">Item name</div>
               <input
