@@ -1206,39 +1206,57 @@ function ReceiptScanModal({ onBulkAdd, onClose }: {
   const [items, setItems] = useState<ReceiptItem[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
 
+  async function resizeImage(file: File, maxWidth = 1600): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(url)
+        const scale = Math.min(1, maxWidth / img.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      }
+      img.onerror = reject
+      img.src = url
+    })
+  }
+
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setPhase('processing')
 
-    const reader = new FileReader()
-    reader.onload = async () => {
-      const base64 = reader.result as string
-      try {
-        const res = await fetch('/api/scan-receipt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64 }),
-        })
-        if (!res.ok) throw new Error('Scan failed')
-        const data = await res.json() as { items: Array<{ name: string; quantity: number; unit: string }> }
-        if (!data.items?.length) throw new Error('No items found on receipt')
-        setItems(data.items.map(i => ({
-          name: i.name,
-          quantity: i.quantity,
-          unit: i.unit || 'units',
-          category: guessCategory(i.name),
-          expiry: addMonths(12),
-          expiryType: 'expires' as const,
-          selected: true,
-        })))
-        setPhase('review')
-      } catch (err) {
-        setErrorMsg(err instanceof Error ? err.message : 'Something went wrong')
-        setPhase('error')
+    try {
+      const base64 = await resizeImage(file)
+      const res = await fetch('/api/scan-receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        throw new Error(body.error || `Server error ${res.status}`)
       }
+      const data = await res.json() as { items: Array<{ name: string; quantity: number; unit: string }> }
+      if (!data.items?.length) throw new Error('No items found — try a clearer photo')
+      setItems(data.items.map(i => ({
+        name: i.name,
+        quantity: i.quantity,
+        unit: i.unit || 'units',
+        category: guessCategory(i.name),
+        expiry: addMonths(12),
+        expiryType: 'expires' as const,
+        selected: true,
+      })))
+      setPhase('review')
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Something went wrong')
+      setPhase('error')
     }
-    reader.readAsDataURL(file)
   }
 
   function updateItem(idx: number, patch: Partial<ReceiptItem>) {

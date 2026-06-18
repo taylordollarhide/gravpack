@@ -6,7 +6,23 @@ const client = new Anthropic()
 
 export const APIRoute = createAPIFileRoute('/api/scan-receipt')({
   POST: async ({ request }: { request: Request }) => {
-    const { image } = await request.json() as { image: string }
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured in Netlify environment variables' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    let image: string
+    try {
+      const body = await request.json() as { image?: string }
+      image = body.image ?? ''
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid request body' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
 
     if (!image) {
       return new Response(JSON.stringify({ error: 'No image provided' }), {
@@ -14,6 +30,8 @@ export const APIRoute = createAPIFileRoute('/api/scan-receipt')({
         headers: { 'Content-Type': 'application/json' },
       })
     }
+
+    try {
 
     const mediaTypeMatch = image.match(/^data:(image\/[a-z]+);base64,/)
     const mediaType = (mediaTypeMatch?.[1] ?? 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
@@ -65,5 +83,12 @@ Respond ONLY with valid JSON in this exact format:
     return new Response(JSON.stringify(parsed), {
       headers: { 'Content-Type': 'application/json' },
     })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      return new Response(JSON.stringify({ error: msg }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
   },
 })
