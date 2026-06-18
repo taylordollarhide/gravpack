@@ -861,34 +861,36 @@ function BarcodeScanner({ onScan, onClose }: {
   onClose: () => void
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null)
+  const controlsRef = useRef<{ stop: () => void } | null>(null)
+  const doneRef = useRef(false)
   const [status, setStatus] = useState<'scanning' | 'fetching' | 'error'>('scanning')
   const [errorMsg, setErrorMsg] = useState('')
 
-  const stop = useCallback(() => {
-    readerRef.current?.reset()
-  }, [])
+  function stopScanner() {
+    try { controlsRef.current?.stop() } catch { /* ignore */ }
+  }
 
   useEffect(() => {
     const reader = new BrowserMultiFormatReader()
-    readerRef.current = reader
 
     reader.decodeFromConstraints(
-      { video: { facingMode: 'environment' } },
+      { video: { facingMode: { ideal: 'environment' } } },
       videoRef.current!,
-      async (result, err) => {
-        if (!result) return
-        if (err) return
-        reader.reset()
+      async (result, _err) => {
+        if (!result || doneRef.current) return
+        doneRef.current = true
+        stopScanner()
         setStatus('fetching')
         await lookup(result.getText())
       }
-    ).catch(() => {
-      setErrorMsg('Camera access denied or not available')
+    ).then(controls => {
+      controlsRef.current = controls
+    }).catch(() => {
+      setErrorMsg('Camera access denied or unavailable')
       setStatus('error')
     })
 
-    return () => reader.reset()
+    return stopScanner
   }, [])
 
   async function lookup(barcode: string) {
@@ -912,14 +914,14 @@ function BarcodeScanner({ onScan, onClose }: {
 
   return (
     <div className="scanner-overlay">
-      <video ref={videoRef} className="scanner-video" playsInline muted />
+      <video ref={videoRef} className="scanner-video" playsInline muted autoPlay />
       <div className="scanner-frame" />
       <div className="scanner-hint">
         {status === 'scanning' && 'Point camera at barcode'}
         {status === 'fetching' && 'Looking up product…'}
         {status === 'error' && errorMsg}
       </div>
-      <button className="scanner-close" onClick={() => { stop(); onClose() }}>✕ Cancel</button>
+      <button className="scanner-close" onClick={() => { stopScanner(); onClose() }}>✕ Cancel</button>
     </div>
   )
 }
