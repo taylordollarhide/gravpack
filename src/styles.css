@@ -323,19 +323,105 @@ html, body {
 }
 .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
-/* ─── FAB ─── */
-.fab {
+/* ─── FAB speed-dial ─── */
+.fab-container {
   position: fixed;
-  bottom: calc(60px + var(--safe-bottom) + 32px);
+  bottom: calc(60px + var(--safe-bottom) + 20px);
   right: 16px;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
+  z-index: 150;
+}
+.fab-backdrop {
+  position: fixed; inset: 0; z-index: 140;
+}
+.fab-actions {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+  opacity: 0; pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity .18s, transform .18s;
+}
+.fab-actions-visible {
+  opacity: 1; pointer-events: auto;
+  transform: translateY(0);
+}
+.fab-action {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 24px; padding: 10px 16px 10px 14px;
+  cursor: pointer; z-index: 155;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  white-space: nowrap;
+}
+.fab-action:active { opacity: .8; }
+.fab-action-label {
+  font-family: var(--font-body); font-size: 14px; font-weight: 600;
+  color: var(--t1);
+}
+.fab-action-icon { font-size: 18px; }
+.fab {
   width: 54px; height: 54px; border-radius: 50%;
   background: var(--accent); border: none;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; z-index: 150;
+  cursor: pointer; z-index: 155;
   box-shadow: 0 12px 36px rgba(227,28,35,.38), 0 0 0 1px rgba(227,28,35,.3);
   transition: transform .15s, opacity .15s;
+  position: relative;
 }
 .fab:active { transform: scale(.93); opacity: .88; }
+
+/* ─── Receipt Modal ─── */
+.receipt-modal-sheet {
+  max-height: 85vh; overflow-y: auto;
+}
+.receipt-capture-area {
+  margin: 8px 16px 16px;
+  border: 2px dashed var(--border); border-radius: 12px;
+  padding: 40px 20px; text-align: center; cursor: pointer;
+}
+.receipt-capture-area:active { opacity: .7; }
+.receipt-capture-icon { font-size: 40px; margin-bottom: 10px; }
+.receipt-capture-label { font-family: var(--font-body); font-size: 15px; font-weight: 600; color: var(--t1); }
+.receipt-capture-sub { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-top: 4px; }
+.receipt-processing {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 40px 20px 32px; text-align: center;
+}
+.receipt-processing-label { font-family: var(--font-body); font-size: 15px; font-weight: 600; color: var(--t1); }
+.receipt-processing-sub { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-top: 4px; }
+.receipt-error-area {
+  display: flex; flex-direction: column; align-items: center; padding: 32px 20px;
+}
+.receipt-review-header {
+  font-family: var(--font-mono); font-size: 12px; color: var(--t3);
+  padding: 0 16px 10px; text-transform: uppercase; letter-spacing: .04em;
+}
+.receipt-items-list {
+  display: flex; flex-direction: column; gap: 8px; padding: 0 16px 12px;
+}
+.receipt-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px;
+}
+.receipt-item-unchecked { opacity: .45; }
+.receipt-item-check {
+  background: none; border: none; font-size: 20px;
+  cursor: pointer; color: var(--accent); padding: 0; line-height: 1; flex-shrink: 0;
+}
+.receipt-item-body { flex: 1; min-width: 0; }
+.receipt-item-name { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--t1); }
+.receipt-item-qty { font-family: var(--font-mono); font-size: 12px; color: var(--t3); margin-bottom: 8px; }
+.receipt-item-controls { display: flex; flex-wrap: wrap; gap: 6px; }
+.receipt-item-select {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--t2); font-family: var(--font-mono); font-size: 11px; padding: 4px 6px;
+  flex: 1; min-width: 80px;
+}
+.receipt-item-date {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--t2); font-family: var(--font-mono); font-size: 11px; padding: 4px 6px;
+  width: 100%;
+}
 
 /* ─── MODAL OVERLAY ─── */
 .modal-overlay {

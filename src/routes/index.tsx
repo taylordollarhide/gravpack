@@ -1176,6 +1176,199 @@ function AddItemModal({
   )
 }
 
+// ─── Receipt Scan Modal ───────────────────────────────────────────────────────
+
+interface ReceiptItem {
+  name: string
+  quantity: number
+  unit: string
+  category: Category
+  expiry: string
+  expiryType: 'expires' | 'best-by' | 'none'
+  selected: boolean
+}
+
+function guessCategory(name: string): Category {
+  const n = name.toLowerCase()
+  if (/water|aqua|h2o/.test(n)) return 'Water'
+  if (/battery|batteries|solar|flashlight|lantern|candle|lighter|fuel|generator/.test(n)) return 'Power'
+  if (/bandage|gauze|medicine|medication|pill|vitamin|first aid|antiseptic|ibuprofen|aspirin/.test(n)) return 'Medical'
+  if (/knife|rope|wrench|tool|duct tape|tarp|glove/.test(n)) return 'Tools'
+  return 'Food'
+}
+
+function ReceiptScanModal({ onBulkAdd, onClose }: {
+  onBulkAdd: (items: Array<{ name: string; category: Category; qty: number; unit: string; expiry: string | null; expiryType?: 'expires' | 'best-by' }>) => void
+  onClose: () => void
+}) {
+  const [phase, setPhase] = useState<'capture' | 'processing' | 'review' | 'error'>('capture')
+  const [errorMsg, setErrorMsg] = useState('')
+  const [items, setItems] = useState<ReceiptItem[]>([])
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhase('processing')
+
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const base64 = reader.result as string
+      try {
+        const res = await fetch('/api/scan-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64 }),
+        })
+        if (!res.ok) throw new Error('Scan failed')
+        const data = await res.json() as { items: Array<{ name: string; quantity: number; unit: string }> }
+        if (!data.items?.length) throw new Error('No items found on receipt')
+        setItems(data.items.map(i => ({
+          name: i.name,
+          quantity: i.quantity,
+          unit: i.unit || 'units',
+          category: guessCategory(i.name),
+          expiry: addMonths(12),
+          expiryType: 'expires' as const,
+          selected: true,
+        })))
+        setPhase('review')
+      } catch (err) {
+        setErrorMsg(err instanceof Error ? err.message : 'Something went wrong')
+        setPhase('error')
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  function updateItem(idx: number, patch: Partial<ReceiptItem>) {
+    setItems(prev => prev.map((it, i) => i === idx ? { ...it, ...patch } : it))
+  }
+
+  function handleConfirm() {
+    const selected = items.filter(i => i.selected)
+    onBulkAdd(selected.map(i => ({
+      name: i.name,
+      category: i.category,
+      qty: i.quantity,
+      unit: i.unit,
+      expiry: i.expiryType !== 'none' ? i.expiry : null,
+      expiryType: i.expiryType !== 'none' ? i.expiryType : undefined,
+    })))
+  }
+
+  const selectedCount = items.filter(i => i.selected).length
+
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="modal-sheet receipt-modal-sheet" onClick={e => e.stopPropagation()}>
+        <div className="modal-handle" />
+        <div className="modal-title">Scan Receipt</div>
+
+        {phase === 'capture' && (
+          <>
+            <div className="receipt-capture-area" onClick={() => fileRef.current?.click()}>
+              <div className="receipt-capture-icon">🧾</div>
+              <div className="receipt-capture-label">Tap to photograph receipt</div>
+              <div className="receipt-capture-sub">Camera opens automatically</div>
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              style={{ display: 'none' }}
+              onChange={handleFile}
+            />
+            <button className="btn-primary" onClick={() => fileRef.current?.click()}>
+              📷 Open Camera
+            </button>
+            <button className="btn-ghost" onClick={onClose}>Cancel</button>
+          </>
+        )}
+
+        {phase === 'processing' && (
+          <div className="receipt-processing">
+            <div className="scanner-spinner" style={{ margin: '32px auto 16px' }} />
+            <div className="receipt-processing-label">Reading receipt…</div>
+            <div className="receipt-processing-sub">Claude is extracting items</div>
+          </div>
+        )}
+
+        {phase === 'error' && (
+          <>
+            <div className="receipt-error-area">
+              <div className="scanner-error-icon">✕</div>
+              <div className="receipt-processing-label">{errorMsg}</div>
+            </div>
+            <button className="btn-primary" onClick={() => { setPhase('capture'); if (fileRef.current) fileRef.current.value = '' }}>
+              Try again
+            </button>
+            <button className="btn-ghost" onClick={onClose}>Cancel</button>
+          </>
+        )}
+
+        {phase === 'review' && (
+          <>
+            <div className="receipt-review-header">
+              {selectedCount} of {items.length} items selected
+            </div>
+            <div className="receipt-items-list">
+              {items.map((item, idx) => (
+                <div key={idx} className={`receipt-item${item.selected ? '' : ' receipt-item-unchecked'}`}>
+                  <button
+                    className="receipt-item-check"
+                    onClick={() => updateItem(idx, { selected: !item.selected })}
+                  >
+                    {item.selected ? '☑' : '☐'}
+                  </button>
+                  <div className="receipt-item-body">
+                    <div className="receipt-item-name">{item.name}</div>
+                    <div className="receipt-item-qty">{item.quantity} {item.unit}</div>
+                    <div className="receipt-item-controls">
+                      <select
+                        className="receipt-item-select"
+                        value={item.category}
+                        onChange={e => updateItem(idx, { category: e.target.value as Category })}
+                        disabled={!item.selected}
+                      >
+                        {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+                      </select>
+                      <select
+                        className="receipt-item-select"
+                        value={item.expiryType}
+                        onChange={e => updateItem(idx, { expiryType: e.target.value as ReceiptItem['expiryType'] })}
+                        disabled={!item.selected}
+                      >
+                        <option value="expires">Expires</option>
+                        <option value="best-by">Best By</option>
+                        <option value="none">No Date</option>
+                      </select>
+                      {item.expiryType !== 'none' && (
+                        <input
+                          className="receipt-item-date"
+                          type="date"
+                          value={item.expiry}
+                          onChange={e => updateItem(idx, { expiry: e.target.value })}
+                          disabled={!item.selected}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button className="btn-primary" onClick={handleConfirm} disabled={selectedCount === 0}>
+              Add {selectedCount} item{selectedCount !== 1 ? 's' : ''} to shelf
+            </button>
+            <button className="btn-ghost" onClick={onClose}>Cancel</button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Consume Modal ────────────────────────────────────────────────────────────
 
 function ConsumeModal({
@@ -1420,6 +1613,8 @@ function GravPackApp() {
   useEffect(() => { applyTheme(theme) }, [theme])
 
   const [addModal, setAddModal] = useState<{ open: boolean; edit?: Item | null }>({ open: false })
+  const [receiptModal, setReceiptModal] = useState(false)
+  const [fabOpen, setFabOpen] = useState(false)
   const [detailItem, setDetailItem] = useState<Item | null>(null)
   const [consumeItem, setConsumeItem] = useState<Item | null>(null)
   const [restockItem, setRestockItem] = useState<Item | null>(null)
@@ -1507,7 +1702,28 @@ function GravPackApp() {
     { id: 'settings', label: 'Settings', icon: <SettingsIcon /> },
   ]
 
-  const hasModal = addModal.open || detailItem !== null || consumeItem !== null || restockItem !== null
+  const hasModal = addModal.open || receiptModal || detailItem !== null || consumeItem !== null || restockItem !== null
+
+  function handleBulkAdd(newItems: Array<{ name: string; category: Category; qty: number; unit: string; expiry: string | null; expiryType?: 'expires' | 'best-by' }>) {
+    const toAdd: Item[] = newItems.map(data => ({
+      id: newId(),
+      created: new Date().toISOString(),
+      consumeLog: [],
+      depleted: false,
+      priceHistory: [],
+      name: data.name,
+      category: data.category,
+      qty: data.qty,
+      unit: data.unit,
+      price: null,
+      expiry: data.expiry,
+      expiryType: data.expiryType,
+      location: '',
+      notes: '',
+    }))
+    setItems([...items, ...toAdd])
+    setReceiptModal(false)
+  }
 
   return (
     <div className="gp-app">
@@ -1557,6 +1773,12 @@ function GravPackApp() {
 
         {hasModal && (
           <>
+            {receiptModal && (
+              <ReceiptScanModal
+                onBulkAdd={handleBulkAdd}
+                onClose={() => setReceiptModal(false)}
+              />
+            )}
             {addModal.open && (
               <AddItemModal
                 initial={addModal.edit}
@@ -1602,11 +1824,29 @@ function GravPackApp() {
       </div>
 
       {screen === 'shelf' && !hasModal && (
-        <button className="fab" onClick={() => setAddModal({ open: true })} aria-label="Add item">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d1117" strokeWidth="2.5">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-        </button>
+        <div className={`fab-container${fabOpen ? ' fab-open' : ''}`}>
+          {fabOpen && (
+            <div className="fab-backdrop" onClick={() => setFabOpen(false)} />
+          )}
+          <div className={`fab-actions${fabOpen ? ' fab-actions-visible' : ''}`}>
+            <button className="fab-action" onClick={() => { setFabOpen(false); setReceiptModal(true) }}>
+              <span className="fab-action-label">Scan Receipt</span>
+              <span className="fab-action-icon">🧾</span>
+            </button>
+            <button className="fab-action" onClick={() => { setFabOpen(false); setAddModal({ open: true }) }}>
+              <span className="fab-action-label">Add Item</span>
+              <span className="fab-action-icon">📦</span>
+            </button>
+          </div>
+          <button className="fab" onClick={() => setFabOpen(o => !o)} aria-label="Add item">
+            <svg
+              width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d1117" strokeWidth="2.5"
+              style={{ transform: fabOpen ? 'rotate(45deg)' : 'none', transition: 'transform .2s' }}
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
       )}
     </div>
   )
