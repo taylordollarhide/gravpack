@@ -1823,11 +1823,11 @@ function GravPackApp() {
         ))}
       </div>
 
+      {screen === 'shelf' && !hasModal && fabOpen && (
+        <div className="fab-backdrop" onClick={() => setFabOpen(false)} />
+      )}
       {screen === 'shelf' && !hasModal && (
         <div className={`fab-container${fabOpen ? ' fab-open' : ''}`}>
-          {fabOpen && (
-            <div className="fab-backdrop" onClick={() => setFabOpen(false)} />
-          )}
           <div className={`fab-actions${fabOpen ? ' fab-actions-visible' : ''}`}>
             <button className="fab-action" onClick={() => { setFabOpen(false); setReceiptModal(true) }}>
               <span className="fab-action-label">Scan Receipt</span>
