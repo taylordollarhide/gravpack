@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createWorker } from 'tesseract.js'
 import { BrowserMultiFormatReader } from '@zxing/browser'
 import { createFileRoute } from '@tanstack/react-router'
 import {
@@ -1206,23 +1207,34 @@ function ReceiptScanModal({ onBulkAdd, onClose }: {
   const [items, setItems] = useState<ReceiptItem[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
 
-  async function resizeImage(file: File, maxWidth = 1600): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      const url = URL.createObjectURL(file)
-      img.onload = () => {
-        URL.revokeObjectURL(url)
-        const scale = Math.min(1, maxWidth / img.width)
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.round(img.width * scale)
-        canvas.height = Math.round(img.height * scale)
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', 0.85))
-      }
-      img.onerror = reject
-      img.src = url
-    })
+  function parseReceiptText(text: string): Array<{ name: string; quantity: number }> {
+    const skipPattern = /subtotal|sub total|sub-total|total|tax|hst|gst|pst|change|cash|credit|debit|visa|mastercard|balance|saving|discount|coupon|member|points|receipt|thank|store|phone|address|www\.|\.com|manager|cashier|^\s*#|item\s+qty|description|amount/i
+    const pricePattern = /\$?\d+\.\d{2}\s*[A-Z]?\s*$/
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 2)
+
+    const items: Array<{ name: string; quantity: number }> = []
+
+    for (const line of lines) {
+      if (skipPattern.test(line)) continue
+      if (!pricePattern.test(line)) continue
+
+      // strip trailing price
+      const withoutPrice = line.replace(/\$?\s*\d+\.\d{2}\s*[A-Z]?\s*$/, '').trim()
+      if (!withoutPrice || withoutPrice.length < 2) continue
+
+      // detect leading quantity like "2 PASTA SAUCE" or "2x PASTA SAUCE"
+      const qtyMatch = withoutPrice.match(/^(\d+)\s*x?\s+(.+)/i)
+      const quantity = qtyMatch ? parseInt(qtyMatch[1], 10) : 1
+      const rawName = qtyMatch ? qtyMatch[2] : withoutPrice
+
+      // clean up name: remove PLU codes, extra symbols
+      const name = rawName.replace(/^\d{4,}\s*/, '').replace(/[*@#%]/g, '').trim()
+      if (name.length < 2) continue
+
+      items.push({ name: toTitleCase(name.toLowerCase()), quantity })
+    }
+
+    return items
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -1231,22 +1243,17 @@ function ReceiptScanModal({ onBulkAdd, onClose }: {
     setPhase('processing')
 
     try {
-      const base64 = await resizeImage(file)
-      const res = await fetch('/api/scan-receipt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64 }),
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { error?: string }
-        throw new Error(body.error || `Server error ${res.status}`)
-      }
-      const data = await res.json() as { items: Array<{ name: string; quantity: number; unit: string }> }
-      if (!data.items?.length) throw new Error('No items found — try a clearer photo')
-      setItems(data.items.map(i => ({
+      const worker = await createWorker('eng')
+      const { data: { text } } = await worker.recognize(file)
+      await worker.terminate()
+
+      const parsed = parseReceiptText(text)
+      if (!parsed.length) throw new Error('No items found — try a flatter, well-lit photo')
+
+      setItems(parsed.map(i => ({
         name: i.name,
         quantity: i.quantity,
-        unit: i.unit || 'units',
+        unit: 'units',
         category: guessCategory(i.name),
         expiry: addMonths(12),
         expiryType: 'expires' as const,
@@ -1309,7 +1316,7 @@ function ReceiptScanModal({ onBulkAdd, onClose }: {
           <div className="receipt-processing">
             <div className="scanner-spinner" style={{ margin: '32px auto 16px' }} />
             <div className="receipt-processing-label">Reading receipt…</div>
-            <div className="receipt-processing-sub">Claude is extracting items</div>
+            <div className="receipt-processing-sub">This takes 10–20 seconds</div>
           </div>
         )}
 

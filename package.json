@@ -23,6 +23,7 @@
     "react-dom": "^19.2.0",
     "streamdown": "^2.1.0",
     "tailwindcss": "^4.0.6",
+    "tesseract.js": "^7.0.0",
     "vite-tsconfig-paths": "^6.0.2",
     "zod": "^4.3.5"
   },
