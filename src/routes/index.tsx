@@ -110,16 +110,16 @@ function ValueBreakdownModal({ items, onClose }: { items: Item[]; onClose: () =>
 }
 
 function ShelfScreen({
-  items, onItemClick, onRestock, deletingId,
+  items, onItemClick, onRestock, deletingId, onShowValueBreakdown,
 }: {
   items: Item[]
   onItemClick: (item: Item) => void
   onRestock: (item: Item) => void
   deletingId?: string | null
+  onShowValueBreakdown: () => void
 }) {
   const [search, setSearch] = useState('')
   const [catFilter, setCatFilter] = useState<string>('All')
-  const [showValueBreakdown, setShowValueBreakdown] = useState(false)
 
   const filtered = items.filter(i => {
     if (i.depleted) return false
@@ -169,11 +169,10 @@ function ShelfScreen({
           <div className={`stat-val${restockCount > 0 ? ' danger' : ''}`}>{restockCount}</div>
           <div className="stat-lbl">Restock</div>
         </div>
-        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setShowValueBreakdown(true)}>
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={onShowValueBreakdown}>
           <div className="stat-val">${totalValue.toFixed(0)}</div>
           <div className="stat-lbl">Value ›</div>
         </div>
-        {showValueBreakdown && <ValueBreakdownModal items={items} onClose={() => setShowValueBreakdown(false)} />}
       </div>
 
       <div className="search-wrap">
@@ -1579,6 +1578,7 @@ function GravPackApp() {
 
   const [addModal, setAddModal] = useState<{ open: boolean; edit?: Item | null }>({ open: false })
   const [detailItem, setDetailItem] = useState<Item | null>(null)
+  const [showValueBreakdown, setShowValueBreakdown] = useState(false)
   const [consumeItem, setConsumeItem] = useState<Item | null>(null)
   const [restockItem, setRestockItem] = useState<Item | null>(null)
 
@@ -1722,6 +1722,7 @@ function GravPackApp() {
             onItemClick={item => setDetailItem(item)}
             onRestock={item => setRestockItem(item)}
             deletingId={deletingId}
+            onShowValueBreakdown={() => setShowValueBreakdown(true)}
           />
         )}
         {screen === 'expiring' && (
@@ -1811,6 +1812,10 @@ function GravPackApp() {
         <button className="fab" onClick={() => setAddModal({ open: true })} aria-label="Add item">
           <span className="material-icons" style={{ fontSize: 30, color: '#0d1117' }}>add</span>
         </button>
+      )}
+
+      {showValueBreakdown && (
+        <ValueBreakdownModal items={items} onClose={() => setShowValueBreakdown(false)} />
       )}
     </div>
   )

@@ -842,11 +842,11 @@ function ShelfScreen({
   items,
   onItemClick,
   onRestock,
-  deletingId
+  deletingId,
+  onShowValueBreakdown
 }) {
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
-  const [showValueBreakdown, setShowValueBreakdown] = useState(false);
   const filtered = items.filter((i) => {
     if (i.depleted) return false;
     if (catFilter !== "All" && i.category !== catFilter) return false;
@@ -895,14 +895,13 @@ function ShelfScreen({
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
         cursor: "pointer"
-      }, onClick: () => setShowValueBreakdown(true), children: [
+      }, onClick: onShowValueBreakdown, children: [
         /* @__PURE__ */ jsxs("div", { className: "stat-val", children: [
           "$",
           totalValue.toFixed(0)
         ] }),
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Value ›" })
-      ] }),
-      showValueBreakdown && /* @__PURE__ */ jsx(ValueBreakdownModal, { items, onClose: () => setShowValueBreakdown(false) })
+      ] })
     ] }),
     /* @__PURE__ */ jsx("div", { className: "search-wrap", children: /* @__PURE__ */ jsxs("div", { className: "search-bar", children: [
       /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
@@ -2375,6 +2374,7 @@ function GravPackApp() {
     open: false
   });
   const [detailItem, setDetailItem] = useState(null);
+  const [showValueBreakdown, setShowValueBreakdown] = useState(false);
   const [consumeItem, setConsumeItem] = useState(null);
   const [restockItem, setRestockItem] = useState(null);
   const setItems = useCallback((items2) => {
@@ -2556,7 +2556,7 @@ function GravPackApp() {
       ] })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "screen-wrap", children: [
-      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId }),
+      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true) }),
       screen === "expiring" && /* @__PURE__ */ jsx(ExpiringScreen, { items, onItemClick: (item) => setDetailItem(item) }),
       screen === "readiness" && /* @__PURE__ */ jsx(ReadinessScreen, { household, items, onGoToStrategy: () => setScreen("strategy"), onGoToHousehold: () => setScreen("household"), onGoToSettings: () => setScreen("settings") }),
       screen === "strategy" && /* @__PURE__ */ jsx(StrategyScreen, { household, items, onBack: () => setScreen("readiness") }),
@@ -2591,7 +2591,8 @@ function GravPackApp() {
     }), "aria-label": "Add item", children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
       fontSize: 30,
       color: "#0d1117"
-    }, children: "add" }) })
+    }, children: "add" }) }),
+    showValueBreakdown && /* @__PURE__ */ jsx(ValueBreakdownModal, { items, onClose: () => setShowValueBreakdown(false) })
   ] });
 }
 function InstallBanner({
