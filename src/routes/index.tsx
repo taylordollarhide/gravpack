@@ -876,18 +876,18 @@ function mapOFFCategory(tags: string[]): Category {
 
 // ─── Barcode Scanner ──────────────────────────────────────────────────────────
 
-function parseOFFPackaging(packaging: string | undefined): string {
-  if (!packaging) return ''
-  const p = packaging.toLowerCase()
-  if (/\bcan(s)?\b/.test(p))    return 'cans'
-  if (/\bjar(s)?\b/.test(p))    return 'jars'
-  if (/\bpouch(es)?\b/.test(p) || /\bsachet/.test(p)) return 'pouches'
-  if (/\bcarton(s)?\b/.test(p) || /\btetra/.test(p))  return 'cartons'
-  if (/\bbox(es)?\b/.test(p))   return 'boxes'
-  if (/\bbag(s)?\b/.test(p))    return 'bags'
-  if (/\bbottle(s)?\b/.test(p)) return 'bottles'
-  if (/\bpack(s|age)?\b/.test(p)) return 'packs'
-  if (/\btab(let)?s?\b/.test(p)) return 'tabs'
+function parseOFFPackaging(packaging: string | undefined, packagingTags: string[] | undefined): string {
+  const combined = [packaging || '', ...(packagingTags || [])].join(' ').toLowerCase()
+  if (!combined.trim()) return ''
+  if (/\bcan(s)?\b/.test(combined))    return 'cans'
+  if (/\bjar(s)?\b/.test(combined))    return 'jars'
+  if (/\bpouch(es)?|sachet/.test(combined)) return 'pouches'
+  if (/\bcarton(s)?|tetra/.test(combined))  return 'cartons'
+  if (/\bbox(es)?\b/.test(combined))   return 'boxes'
+  if (/\bbag(s)?\b/.test(combined))    return 'bags'
+  if (/\bbottle(s)?\b/.test(combined)) return 'bottles'
+  if (/\bpack(s|age)?\b/.test(combined)) return 'packs'
+  if (/\btab(let)?s?\b/.test(combined)) return 'tabs'
   return ''
 }
 
@@ -956,7 +956,7 @@ function BarcodeScanner({ onScan, onClose }: {
         const name = p.product_name_en || p.product_name || ''
         const category = mapOFFCategory(p.categories_tags || [])
         const { qty, unit: weightUnit } = parseOFFQuantity(p.quantity)
-        const packagingUnit = parseOFFPackaging(p.packaging)
+        const packagingUnit = parseOFFPackaging(p.packaging, p.packaging_tags)
         const unit = packagingUnit || weightUnit
         const brand = p.brands ? p.brands.split(',')[0].trim() : ''
         onScan(name ? toTitleCase(name) : '', category, qty, unit, brand)
