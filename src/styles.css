@@ -314,6 +314,18 @@ html, body {
 }
 [data-theme="light"] .item-card { background: #fff; border-color: rgba(0,0,0,.08); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
 .item-card:active { opacity: .7; }
+@keyframes item-delete {
+  0%   { transform: translateX(0);    opacity: 1;   max-height: 80px; background: transparent; }
+  18%  { transform: translateX(-6px); opacity: 1;   background: rgba(239,68,68,.18); }
+  40%  { transform: translateX(0);    opacity: 1;   background: rgba(239,68,68,.10); }
+  65%  { transform: translateX(48px); opacity: 0;   max-height: 80px; }
+  100% { transform: translateX(48px); opacity: 0;   max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; border-width: 0; }
+}
+.item-card.deleting {
+  animation: item-delete 520ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  overflow: hidden;
+  pointer-events: none;
+}
 .item-left { display: flex; flex-direction: column; gap: 4px; }
 .item-name { font-family: var(--sans); font-size: 14px; font-weight: 600; color: var(--t1); }
 .item-meta { font-family: var(--sans); font-size: 12px; color: var(--t3); }

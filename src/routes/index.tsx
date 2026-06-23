@@ -42,9 +42,9 @@ function ExpiryBadge({ expiry, depleted, expiryType }: { expiry: string | null; 
 
 // ─── Item Card ────────────────────────────────────────────────────────────────
 
-function ItemCard({ item, onClick }: { item: Item; onClick: () => void }) {
+function ItemCard({ item, onClick, deleting }: { item: Item; onClick: () => void; deleting?: boolean }) {
   return (
-    <div className="item-card" onClick={onClick}>
+    <div className={`item-card${deleting ? ' deleting' : ''}`} onClick={onClick}>
       <div className="item-left">
         <div className="item-name">{item.name}</div>
         <div className="item-meta">
@@ -60,11 +60,12 @@ function ItemCard({ item, onClick }: { item: Item; onClick: () => void }) {
 // ─── Shelf Screen ─────────────────────────────────────────────────────────────
 
 function ShelfScreen({
-  items, onItemClick, onRestock,
+  items, onItemClick, onRestock, deletingId,
 }: {
   items: Item[]
   onItemClick: (item: Item) => void
   onRestock: (item: Item) => void
+  deletingId?: string | null
 }) {
   const [search, setSearch] = useState('')
   const [catFilter, setCatFilter] = useState<string>('All')
@@ -158,7 +159,7 @@ function ShelfScreen({
                 <div className="dot" style={{ background: 'var(--red)' }} />
                 Needs attention
               </div>
-              {needsAttn.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
+              {needsAttn.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} deleting={deletingId === i.id} />)}
             </>
           )}
 
@@ -208,7 +209,7 @@ function ShelfScreen({
                 <div className="dot" style={{ background: 'var(--good)' }} />
                 Good standing
               </div>
-              {good.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} />)}
+              {good.map(i => <ItemCard key={i.id} item={i} onClick={() => onItemClick(i)} deleting={deletingId === i.id} />)}
             </>
           )}
 
@@ -1543,9 +1544,15 @@ function GravPackApp() {
     setDetailItem(null)
   }
 
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
   function handleDelete(item: Item) {
-    setItems(items.filter(i => i.id !== item.id))
+    setDeletingId(item.id)
     setDetailItem(null)
+    setTimeout(() => {
+      setItems(items.filter(i => i.id !== item.id))
+      setDeletingId(null)
+    }, 520)
   }
 
   const tabs: { id: Screen; label: string; icon: React.ReactNode }[] = [
@@ -1588,6 +1595,7 @@ function GravPackApp() {
             items={items}
             onItemClick={item => setDetailItem(item)}
             onRestock={item => setRestockItem(item)}
+            deletingId={deletingId}
           />
         )}
         {screen === 'expiring' && (

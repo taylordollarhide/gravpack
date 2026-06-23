@@ -723,9 +723,10 @@ function ExpiryBadge({
 }
 function ItemCard({
   item,
-  onClick
+  onClick,
+  deleting
 }) {
-  return /* @__PURE__ */ jsxs("div", { className: "item-card", onClick, children: [
+  return /* @__PURE__ */ jsxs("div", { className: `item-card${deleting ? " deleting" : ""}`, onClick, children: [
     /* @__PURE__ */ jsxs("div", { className: "item-left", children: [
       /* @__PURE__ */ jsx("div", { className: "item-name", children: item.name }),
       /* @__PURE__ */ jsxs("div", { className: "item-meta", children: [
@@ -750,7 +751,8 @@ function ItemCard({
 function ShelfScreen({
   items,
   onItemClick,
-  onRestock
+  onRestock,
+  deletingId
 }) {
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
@@ -846,7 +848,7 @@ function ShelfScreen({
           } }),
           "Needs attention"
         ] }),
-        needsAttn.map((i) => /* @__PURE__ */ jsx(ItemCard, { item: i, onClick: () => onItemClick(i) }, i.id))
+        needsAttn.map((i) => /* @__PURE__ */ jsx(ItemCard, { item: i, onClick: () => onItemClick(i), deleting: deletingId === i.id }, i.id))
       ] }),
       trendItems.length > 0 && /* @__PURE__ */ jsxs(Fragment, { children: [
         /* @__PURE__ */ jsx("div", { className: "section-label", children: "Price trends" }),
@@ -908,7 +910,7 @@ function ShelfScreen({
           } }),
           "Good standing"
         ] }),
-        good.map((i) => /* @__PURE__ */ jsx(ItemCard, { item: i, onClick: () => onItemClick(i) }, i.id))
+        good.map((i) => /* @__PURE__ */ jsx(ItemCard, { item: i, onClick: () => onItemClick(i), deleting: deletingId === i.id }, i.id))
       ] }),
       depleted.length > 0 && /* @__PURE__ */ jsxs(Fragment, { children: [
         /* @__PURE__ */ jsxs("div", { className: "section-dot-row", children: [
@@ -2318,9 +2320,14 @@ function GravPackApp() {
     setRestockItem(null);
     setDetailItem(null);
   }
+  const [deletingId, setDeletingId] = useState(null);
   function handleDelete(item) {
-    setItems(items.filter((i) => i.id !== item.id));
+    setDeletingId(item.id);
     setDetailItem(null);
+    setTimeout(() => {
+      setItems(items.filter((i) => i.id !== item.id));
+      setDeletingId(null);
+    }, 520);
   }
   const tabs = [{
     id: "shelf",
@@ -2379,7 +2386,7 @@ function GravPackApp() {
       ] })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "screen-wrap", children: [
-      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item) }),
+      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId }),
       screen === "expiring" && /* @__PURE__ */ jsx(ExpiringScreen, { items, onItemClick: (item) => setDetailItem(item) }),
       screen === "readiness" && /* @__PURE__ */ jsx(ReadinessScreen, { household, items, onGoToStrategy: () => setScreen("strategy"), onGoToHousehold: () => setScreen("household"), onGoToSettings: () => setScreen("settings") }),
       screen === "strategy" && /* @__PURE__ */ jsx(StrategyScreen, { household, items, onBack: () => setScreen("readiness") }),
