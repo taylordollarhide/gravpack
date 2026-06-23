@@ -739,6 +739,105 @@ function ItemCard({
     /* @__PURE__ */ jsx(ExpiryBadge, { expiry: item.expiry, depleted: item.depleted, expiryType: item.expiryType })
   ] });
 }
+function ValueBreakdownModal({
+  items,
+  onClose
+}) {
+  const activeItems = items.filter((i) => !i.depleted && i.price && i.qty);
+  const total = activeItems.reduce((s, i) => s + i.price * i.qty, 0);
+  const byCategory = CATEGORIES.map((cat) => {
+    const catItems = activeItems.filter((i) => i.category === cat);
+    const value = catItems.reduce((s, i) => s + i.price * i.qty, 0);
+    const count = catItems.length;
+    return {
+      cat,
+      value,
+      count
+    };
+  }).filter((r) => r.value > 0).sort((a, b) => b.value - a.value);
+  return /* @__PURE__ */ jsx("div", { className: "modal-overlay", onClick: (e) => {
+    if (e.target === e.currentTarget) onClose();
+  }, children: /* @__PURE__ */ jsxs("div", { className: "modal-sheet", onClick: (e) => e.stopPropagation(), children: [
+    /* @__PURE__ */ jsxs("div", { style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      padding: "12px 16px 0"
+    }, children: [
+      /* @__PURE__ */ jsx("button", { className: "overflow-btn", style: {
+        visibility: "hidden"
+      }, children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+        fontSize: 22
+      }, children: "close" }) }),
+      /* @__PURE__ */ jsx("div", { className: "modal-handle", style: {
+        position: "absolute",
+        left: "50%",
+        transform: "translateX(-50%)",
+        top: 20
+      } }),
+      /* @__PURE__ */ jsx("button", { className: "overflow-btn", onClick: onClose, children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+        fontSize: 22
+      }, children: "close" }) })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "detail-hero", style: {
+      paddingBottom: 8
+    }, children: [
+      /* @__PURE__ */ jsxs("div", { className: "detail-name", children: [
+        "$",
+        total.toFixed(0)
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "detail-qty", children: "total inventory value" })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { style: {
+      padding: "8px 16px 24px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }, children: [
+      byCategory.map(({
+        cat,
+        value,
+        count
+      }) => {
+        const pct = total > 0 ? value / total * 100 : 0;
+        return /* @__PURE__ */ jsxs("div", { className: "value-breakdown-row", children: [
+          /* @__PURE__ */ jsxs("div", { className: "value-breakdown-header", children: [
+            /* @__PURE__ */ jsxs("div", { style: {
+              display: "flex",
+              alignItems: "center",
+              gap: 8
+            }, children: [
+              /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+                fontSize: 18,
+                color: "var(--t3)"
+              }, children: CAT_EMOJI[cat] }),
+              /* @__PURE__ */ jsx("span", { className: "value-breakdown-cat", children: cat }),
+              /* @__PURE__ */ jsxs("span", { className: "value-breakdown-count", children: [
+                count,
+                " item",
+                count !== 1 ? "s" : ""
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs("span", { className: "value-breakdown-val", children: [
+              "$",
+              value.toFixed(0)
+            ] })
+          ] }),
+          /* @__PURE__ */ jsx("div", { className: "value-breakdown-bar-track", children: /* @__PURE__ */ jsx("div", { className: "value-breakdown-bar-fill", style: {
+            width: `${pct}%`
+          } }) })
+        ] }, cat);
+      }),
+      byCategory.length === 0 && /* @__PURE__ */ jsx("div", { style: {
+        textAlign: "center",
+        color: "var(--t3)",
+        fontFamily: "var(--sans)",
+        fontSize: 14,
+        padding: "24px 0"
+      }, children: "No priced items on shelf" })
+    ] })
+  ] }) });
+}
 function ShelfScreen({
   items,
   onItemClick,
@@ -747,6 +846,7 @@ function ShelfScreen({
 }) {
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
+  const [showValueBreakdown, setShowValueBreakdown] = useState(false);
   const filtered = items.filter((i) => {
     if (i.depleted) return false;
     if (catFilter !== "All" && i.category !== catFilter) return false;
@@ -793,13 +893,16 @@ function ShelfScreen({
         /* @__PURE__ */ jsx("div", { className: `stat-val${restockCount > 0 ? " danger" : ""}`, children: restockCount }),
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Restock" })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
+      /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
+        cursor: "pointer"
+      }, onClick: () => setShowValueBreakdown(true), children: [
         /* @__PURE__ */ jsxs("div", { className: "stat-val", children: [
           "$",
           totalValue.toFixed(0)
         ] }),
-        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Value" })
-      ] })
+        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Value ›" })
+      ] }),
+      showValueBreakdown && /* @__PURE__ */ jsx(ValueBreakdownModal, { items, onClose: () => setShowValueBreakdown(false) })
     ] }),
     /* @__PURE__ */ jsx("div", { className: "search-wrap", children: /* @__PURE__ */ jsxs("div", { className: "search-bar", children: [
       /* @__PURE__ */ jsx("span", { className: "material-icons", style: {

@@ -51,6 +51,64 @@ function ItemCard({ item, onClick, deleting }: { item: Item; onClick: () => void
 
 // ─── Shelf Screen ─────────────────────────────────────────────────────────────
 
+function ValueBreakdownModal({ items, onClose }: { items: Item[]; onClose: () => void }) {
+  const activeItems = items.filter(i => !i.depleted && i.price && i.qty)
+  const total = activeItems.reduce((s, i) => s + i.price! * i.qty, 0)
+  const byCategory = CATEGORIES.map(cat => {
+    const catItems = activeItems.filter(i => i.category === cat)
+    const value = catItems.reduce((s, i) => s + i.price! * i.qty, 0)
+    const count = catItems.length
+    return { cat, value, count }
+  }).filter(r => r.value > 0).sort((a, b) => b.value - a.value)
+
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="modal-sheet" onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 16px 0' }}>
+          <button className="overflow-btn" style={{ visibility: 'hidden' }}>
+            <span className="material-icons" style={{ fontSize: 22 }}>close</span>
+          </button>
+          <div className="modal-handle" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 20 }} />
+          <button className="overflow-btn" onClick={onClose}>
+            <span className="material-icons" style={{ fontSize: 22 }}>close</span>
+          </button>
+        </div>
+
+        <div className="detail-hero" style={{ paddingBottom: 8 }}>
+          <div className="detail-name">${total.toFixed(0)}</div>
+          <div className="detail-qty">total inventory value</div>
+        </div>
+
+        <div style={{ padding: '8px 16px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {byCategory.map(({ cat, value, count }) => {
+            const pct = total > 0 ? (value / total) * 100 : 0
+            return (
+              <div key={cat} className="value-breakdown-row">
+                <div className="value-breakdown-header">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="material-icons" style={{ fontSize: 18, color: 'var(--t3)' }}>{CAT_EMOJI[cat]}</span>
+                    <span className="value-breakdown-cat">{cat}</span>
+                    <span className="value-breakdown-count">{count} item{count !== 1 ? 's' : ''}</span>
+                  </div>
+                  <span className="value-breakdown-val">${value.toFixed(0)}</span>
+                </div>
+                <div className="value-breakdown-bar-track">
+                  <div className="value-breakdown-bar-fill" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            )
+          })}
+          {byCategory.length === 0 && (
+            <div style={{ textAlign: 'center', color: 'var(--t3)', fontFamily: 'var(--sans)', fontSize: 14, padding: '24px 0' }}>
+              No priced items on shelf
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ShelfScreen({
   items, onItemClick, onRestock, deletingId,
 }: {
@@ -61,6 +119,7 @@ function ShelfScreen({
 }) {
   const [search, setSearch] = useState('')
   const [catFilter, setCatFilter] = useState<string>('All')
+  const [showValueBreakdown, setShowValueBreakdown] = useState(false)
 
   const filtered = items.filter(i => {
     if (i.depleted) return false
@@ -110,10 +169,11 @@ function ShelfScreen({
           <div className={`stat-val${restockCount > 0 ? ' danger' : ''}`}>{restockCount}</div>
           <div className="stat-lbl">Restock</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: 'pointer' }} onClick={() => setShowValueBreakdown(true)}>
           <div className="stat-val">${totalValue.toFixed(0)}</div>
-          <div className="stat-lbl">Value</div>
+          <div className="stat-lbl">Value ›</div>
         </div>
+        {showValueBreakdown && <ValueBreakdownModal items={items} onClose={() => setShowValueBreakdown(false)} />}
       </div>
 
       <div className="search-wrap">
