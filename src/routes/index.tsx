@@ -206,9 +206,10 @@ function RestockBreakdownModal({ items, onClose, onItemClick }: { items: Item[];
 }
 
 function ShelfScreen({
-  items, onItemClick, onRestock, deletingId, onShowValueBreakdown, onShowRestockBreakdown, onShowItemsBreakdown, onGoToExpiring, onShowLocalInfo,
+  items, household, onItemClick, onRestock, deletingId, onShowValueBreakdown, onShowRestockBreakdown, onShowItemsBreakdown, onGoToExpiring, onShowLocalInfo,
 }: {
   items: Item[]
+  household: Household
   onItemClick: (item: Item) => void
   onRestock: (item: Item) => void
   deletingId?: string | null
@@ -243,8 +244,9 @@ function ShelfScreen({
   const trendItems = items.filter(i => i.priceHistory.length >= 2)
 
   const totalItems = items.filter(i => !i.depleted).length
-  const expiredCount = items.filter(i => !i.depleted && getExpiryStatus(i.expiry, i.expiryType) === 'expired').length
-  const restockCount = depleted.length
+  const scores = calcScores(household, items)
+  const foodDays = Math.floor(scores.foodDays ?? 0)
+  const waterDays = Math.floor(scores.waterDays ?? 0)
 
   return (
     <div className="screen" style={{ display: 'block' }}>
@@ -261,13 +263,13 @@ function ShelfScreen({
           <div className="stat-val">{totalItems}</div>
           <div className="stat-lbl">Items ›</div>
         </div>
-        <div className="stat-card" style={{ cursor: expiredCount > 0 ? 'pointer' : 'default' }} onClick={expiredCount > 0 ? onGoToExpiring : undefined}>
-          <div className={`stat-val${expiredCount > 0 ? ' danger' : ''}`}>{expiredCount}</div>
-          <div className="stat-lbl">Expired{expiredCount > 0 ? ' ›' : ''}</div>
+        <div className="stat-card">
+          <div className="stat-val">{foodDays}</div>
+          <div className="stat-lbl">Food days</div>
         </div>
-        <div className="stat-card" style={{ cursor: restockCount > 0 ? 'pointer' : 'default' }} onClick={restockCount > 0 ? onShowRestockBreakdown : undefined}>
-          <div className={`stat-val${restockCount > 0 ? ' danger' : ''}`}>{restockCount}</div>
-          <div className="stat-lbl">Restock{restockCount > 0 ? ' ›' : ''}</div>
+        <div className="stat-card">
+          <div className="stat-val">{waterDays}</div>
+          <div className="stat-lbl">Water days</div>
         </div>
         <div className="stat-card" style={{ cursor: 'pointer' }} onClick={onShowValueBreakdown}>
           <div className="stat-val">${totalValue.toFixed(0)}</div>
@@ -1796,42 +1798,23 @@ function GravPackApp() {
   return (
     <div className="gp-app">
       <div className="status-bar">
-        {(() => {
-          const scores = calcScores(household, items)
-          const covDays = Math.floor(scores.coverageDays ?? 0)
-          const activeItems = items.filter(i => !i.depleted).length
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-              <span style={{ fontFamily: 'var(--disp)', fontSize: 16, fontWeight: 800, color: 'var(--t3)', lineHeight: 1 }}>
-                {covDays > 0 ? `${covDays}d food` : `${activeItems} items`}
-              </span>
-              <span style={{ fontFamily: 'var(--sans)', fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                {covDays > 0 ? `${activeItems} items` : 'on shelf'}
-              </span>
-            </div>
-          )
-        })()}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+          <span style={{ fontFamily: 'var(--disp)', fontSize: 16, fontWeight: 800, color: 'var(--t3)', lineHeight: 1 }}>
+            {items.filter(i => !i.depleted).length} items
+          </span>
+          <span style={{ fontFamily: 'var(--sans)', fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+            on shelf
+          </span>
+        </div>
         <img src="/GravPack-app-logo-white.png" alt="GravPack" style={{ height: 40 }} />
-        {(() => {
-          const scores = calcScores(household, items)
-          const waterDays = Math.floor(scores.waterDays ?? 0)
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-              <span style={{ fontFamily: 'var(--disp)', fontSize: 16, fontWeight: 800, color: 'var(--t3)', lineHeight: 1 }}>
-                {waterDays > 0 ? `${waterDays}d water` : '—'}
-              </span>
-              <span style={{ fontFamily: 'var(--sans)', fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                {waterDays > 0 ? 'supply' : 'no water'}
-              </span>
-            </div>
-          )
-        })()}
+        <div style={{ width: 60 }} />
       </div>
 
       <div className="screen-wrap">
         {screen === 'shelf' && (
           <ShelfScreen
             items={items}
+            household={household}
             onItemClick={item => setDetailItem(item)}
             onRestock={item => setRestockItem(item)}
             deletingId={deletingId}

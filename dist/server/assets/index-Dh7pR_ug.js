@@ -999,6 +999,7 @@ function RestockBreakdownModal({
 }
 function ShelfScreen({
   items,
+  household,
   onItemClick,
   onRestock,
   deletingId,
@@ -1027,8 +1028,9 @@ function ShelfScreen({
   const totalValue = items.filter((i) => !i.depleted && i.price && i.qty).reduce((s, i) => s + i.price * i.qty, 0);
   const trendItems = items.filter((i) => i.priceHistory.length >= 2);
   const totalItems = items.filter((i) => !i.depleted).length;
-  const expiredCount = items.filter((i) => !i.depleted && getExpiryStatus(i.expiry, i.expiryType) === "expired").length;
-  const restockCount = depleted.length;
+  const scores = calcScores(household, items);
+  const foodDays = Math.floor(scores.foodDays ?? 0);
+  const waterDays = Math.floor(scores.waterDays ?? 0);
   return /* @__PURE__ */ jsxs("div", { className: "screen", style: {
     display: "block"
   }, children: [
@@ -1052,23 +1054,13 @@ function ShelfScreen({
         /* @__PURE__ */ jsx("div", { className: "stat-val", children: totalItems }),
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Items ›" })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
-        cursor: expiredCount > 0 ? "pointer" : "default"
-      }, onClick: expiredCount > 0 ? onGoToExpiring : void 0, children: [
-        /* @__PURE__ */ jsx("div", { className: `stat-val${expiredCount > 0 ? " danger" : ""}`, children: expiredCount }),
-        /* @__PURE__ */ jsxs("div", { className: "stat-lbl", children: [
-          "Expired",
-          expiredCount > 0 ? " ›" : ""
-        ] })
+      /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
+        /* @__PURE__ */ jsx("div", { className: "stat-val", children: foodDays }),
+        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Food days" })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
-        cursor: restockCount > 0 ? "pointer" : "default"
-      }, onClick: restockCount > 0 ? onShowRestockBreakdown : void 0, children: [
-        /* @__PURE__ */ jsx("div", { className: `stat-val${restockCount > 0 ? " danger" : ""}`, children: restockCount }),
-        /* @__PURE__ */ jsxs("div", { className: "stat-lbl", children: [
-          "Restock",
-          restockCount > 0 ? " ›" : ""
-        ] })
+      /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
+        /* @__PURE__ */ jsx("div", { className: "stat-val", children: waterDays }),
+        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Water days" })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
         cursor: "pointer"
@@ -2694,63 +2686,39 @@ function GravPackApp() {
   const hasModal = addModal.open || detailItem !== null || consumeItem !== null || restockItem !== null;
   return /* @__PURE__ */ jsxs("div", { className: "gp-app", children: [
     /* @__PURE__ */ jsxs("div", { className: "status-bar", children: [
-      (() => {
-        const scores = calcScores(household, items);
-        const covDays = Math.floor(scores.coverageDays ?? 0);
-        const activeItems = items.filter((i) => !i.depleted).length;
-        return /* @__PURE__ */ jsxs("div", { style: {
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          gap: 1
+      /* @__PURE__ */ jsxs("div", { style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: 1
+      }, children: [
+        /* @__PURE__ */ jsxs("span", { style: {
+          fontFamily: "var(--disp)",
+          fontSize: 16,
+          fontWeight: 800,
+          color: "var(--t3)",
+          lineHeight: 1
         }, children: [
-          /* @__PURE__ */ jsx("span", { style: {
-            fontFamily: "var(--disp)",
-            fontSize: 16,
-            fontWeight: 800,
-            color: "var(--t3)",
-            lineHeight: 1
-          }, children: covDays > 0 ? `${covDays}d food` : `${activeItems} items` }),
-          /* @__PURE__ */ jsx("span", { style: {
-            fontFamily: "var(--sans)",
-            fontSize: 10,
-            color: "var(--t3)",
-            textTransform: "uppercase",
-            letterSpacing: ".05em"
-          }, children: covDays > 0 ? `${activeItems} items` : "on shelf" })
-        ] });
-      })(),
+          items.filter((i) => !i.depleted).length,
+          " items"
+        ] }),
+        /* @__PURE__ */ jsx("span", { style: {
+          fontFamily: "var(--sans)",
+          fontSize: 10,
+          color: "var(--t3)",
+          textTransform: "uppercase",
+          letterSpacing: ".05em"
+        }, children: "on shelf" })
+      ] }),
       /* @__PURE__ */ jsx("img", { src: "/GravPack-app-logo-white.png", alt: "GravPack", style: {
         height: 40
       } }),
-      (() => {
-        const scores = calcScores(household, items);
-        const waterDays = Math.floor(scores.waterDays ?? 0);
-        return /* @__PURE__ */ jsxs("div", { style: {
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-end",
-          gap: 1
-        }, children: [
-          /* @__PURE__ */ jsx("span", { style: {
-            fontFamily: "var(--disp)",
-            fontSize: 16,
-            fontWeight: 800,
-            color: "var(--t3)",
-            lineHeight: 1
-          }, children: waterDays > 0 ? `${waterDays}d water` : "—" }),
-          /* @__PURE__ */ jsx("span", { style: {
-            fontFamily: "var(--sans)",
-            fontSize: 10,
-            color: "var(--t3)",
-            textTransform: "uppercase",
-            letterSpacing: ".05em"
-          }, children: waterDays > 0 ? "supply" : "no water" })
-        ] });
-      })()
+      /* @__PURE__ */ jsx("div", { style: {
+        width: 60
+      } })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "screen-wrap", children: [
-      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true), onShowRestockBreakdown: () => setShowRestockBreakdown(true), onShowItemsBreakdown: () => setShowItemsBreakdown(true), onGoToExpiring: () => setScreen("expiring"), onShowLocalInfo: () => setShowLocalInfo(true) }),
+      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, household, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true), onShowRestockBreakdown: () => setShowRestockBreakdown(true), onShowItemsBreakdown: () => setShowItemsBreakdown(true), onGoToExpiring: () => setScreen("expiring"), onShowLocalInfo: () => setShowLocalInfo(true) }),
       screen === "expiring" && /* @__PURE__ */ jsx(ExpiringScreen, { items, onItemClick: (item) => setDetailItem(item) }),
       screen === "readiness" && /* @__PURE__ */ jsx(ReadinessScreen, { household, items, onGoToStrategy: () => setScreen("strategy"), onGoToHousehold: () => setScreen("household"), onGoToSettings: () => setScreen("settings") }),
       screen === "strategy" && /* @__PURE__ */ jsx(StrategyScreen, { household, items, onBack: () => setScreen("readiness") }),
