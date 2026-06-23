@@ -1055,12 +1055,18 @@ function ShelfScreen({
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Items ›" })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
-        /* @__PURE__ */ jsx("div", { className: "stat-val", children: foodDays }),
-        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Food days" })
+        /* @__PURE__ */ jsxs("div", { className: "stat-val", children: [
+          foodDays,
+          "D"
+        ] }),
+        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Food" })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
-        /* @__PURE__ */ jsx("div", { className: "stat-val", children: waterDays }),
-        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Water days" })
+        /* @__PURE__ */ jsxs("div", { className: "stat-val", children: [
+          waterDays,
+          "D"
+        ] }),
+        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Water" })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
         cursor: "pointer"

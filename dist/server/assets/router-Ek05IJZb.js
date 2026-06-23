@@ -154,7 +154,7 @@ function RootDocument({ children }) {
     ] })
   ] });
 }
-const $$splitComponentImporter = () => import("./index-Kif_MPuo.js");
+const $$splitComponentImporter = () => import("./index-w1bSseD3.js");
 const Route = createFileRoute("/")({
   component: lazyRouteComponent($$splitComponentImporter, "component")
 });

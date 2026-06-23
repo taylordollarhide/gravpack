@@ -264,12 +264,12 @@ function ShelfScreen({
           <div className="stat-lbl">Items ›</div>
         </div>
         <div className="stat-card">
-          <div className="stat-val">{foodDays}</div>
-          <div className="stat-lbl">Food days</div>
+          <div className="stat-val">{foodDays}D</div>
+          <div className="stat-lbl">Food</div>
         </div>
         <div className="stat-card">
-          <div className="stat-val">{waterDays}</div>
-          <div className="stat-lbl">Water days</div>
+          <div className="stat-val">{waterDays}D</div>
+          <div className="stat-lbl">Water</div>
         </div>
         <div className="stat-card" style={{ cursor: 'pointer' }} onClick={onShowValueBreakdown}>
           <div className="stat-val">${totalValue.toFixed(0)}</div>
