@@ -268,6 +268,7 @@ html, body {
   background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
   border: 1px solid rgba(255,255,255,.10);
   border-radius: 18px; padding: 12px 12px;
+  text-align: center;
 }
 [data-theme="light"] .stat-card { background: #fff; border-color: rgba(0,0,0,.08); box-shadow: 0 1px 4px rgba(0,0,0,.06); }
 .stat-val { font-family: var(--disp); font-size: 28px; font-weight: 800; letter-spacing: -.03em; color: var(--t1); line-height: 1; }
