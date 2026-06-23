@@ -1057,14 +1057,20 @@ function ShelfScreen({
       /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
         /* @__PURE__ */ jsxs("div", { className: "stat-val", children: [
           foodDays,
-          "D"
+          /* @__PURE__ */ jsx("span", { style: {
+            color: "var(--t3)",
+            fontSize: "0.65em"
+          }, children: "D" })
         ] }),
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Food" })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
         /* @__PURE__ */ jsxs("div", { className: "stat-val", children: [
           waterDays,
-          "D"
+          /* @__PURE__ */ jsx("span", { style: {
+            color: "var(--t3)",
+            fontSize: "0.65em"
+          }, children: "D" })
         ] }),
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Water" })
       ] }),
