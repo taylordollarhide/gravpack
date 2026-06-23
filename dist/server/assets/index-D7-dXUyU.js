@@ -110,6 +110,34 @@ function applyTheme(t) {
     html.setAttribute("data-theme", t);
   }
 }
+const ACCENT_OPTIONS = [
+  { name: "Signal Red", value: "#E31C23", dark: "#B81017" },
+  { name: "Cobalt", value: "#2563EB", dark: "#1D4ED8" },
+  { name: "Emerald", value: "#059669", dark: "#047857" },
+  { name: "Violet", value: "#7C3AED", dark: "#6D28D9" },
+  { name: "Amber", value: "#D97706", dark: "#B45309" },
+  { name: "Coral", value: "#F97316", dark: "#EA580C" },
+  { name: "Teal", value: "#0D9488", dark: "#0F766E" },
+  { name: "Rose", value: "#E11D48", dark: "#BE123C" }
+];
+function loadAccentColor() {
+  try {
+    return localStorage.getItem("gp_accent") || "#E31C23";
+  } catch {
+    return "#E31C23";
+  }
+}
+function saveAccentColor(value, dark) {
+  try {
+    localStorage.setItem("gp_accent", value);
+    localStorage.setItem("gp_accent2", dark);
+  } catch {
+  }
+}
+function applyAccentColor(value, dark) {
+  document.documentElement.style.setProperty("--accent", value);
+  document.documentElement.style.setProperty("--accent2", dark);
+}
 function getStorageSize() {
   try {
     let total = 0;
@@ -1338,7 +1366,9 @@ function SettingsScreen({
   items,
   displayName,
   theme,
+  accentColor,
   onThemeChange,
+  onAccentChange,
   onDisplayNameChange,
   onClearAll,
   onImport
@@ -1394,6 +1424,14 @@ function SettingsScreen({
       /* @__PURE__ */ jsx("span", { className: "material-icons theme-icon", children: icon }),
       /* @__PURE__ */ jsx("span", { children: label })
     ] }, val)) }),
+    /* @__PURE__ */ jsx("div", { className: "section-label", children: "Brand color" }),
+    /* @__PURE__ */ jsx("div", { className: "accent-grid", children: ACCENT_OPTIONS.map((option) => /* @__PURE__ */ jsx("button", { className: `accent-swatch${accentColor === option.value ? " selected" : ""}`, style: {
+      background: option.value
+    }, onClick: () => onAccentChange(option), "aria-label": option.name, children: accentColor === option.value && /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+      fontSize: 18,
+      color: "#fff"
+    }, children: "check" }) }, option.value)) }),
+    /* @__PURE__ */ jsx("div", { className: "accent-label", children: ACCENT_OPTIONS.find((o) => o.value === accentColor)?.name ?? "Signal Red" }),
     /* @__PURE__ */ jsx("div", { className: "section-label", children: "Account" }),
     /* @__PURE__ */ jsxs("div", { className: "card", children: [
       /* @__PURE__ */ jsxs("div", { className: "detail-row", style: {
@@ -2120,9 +2158,14 @@ function GravPackApp() {
   const [household, setHouseholdState] = useState(loadHousehold);
   const [displayName, setDisplayNameState] = useState(loadDisplayName);
   const [theme, setThemeState] = useState(loadTheme);
+  const [accentColor, setAccentColorState] = useState(loadAccentColor);
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
+  useEffect(() => {
+    const option = ACCENT_OPTIONS.find((o) => o.value === accentColor) ?? ACCENT_OPTIONS[0];
+    applyAccentColor(option.value, option.dark);
+  }, [accentColor]);
   const [addModal, setAddModal] = useState({
     open: false
   });
@@ -2141,6 +2184,11 @@ function GravPackApp() {
     setThemeState(t);
     saveTheme(t);
     applyTheme(t);
+  }, []);
+  const setAccentColor = useCallback((option) => {
+    setAccentColorState(option.value);
+    saveAccentColor(option.value, option.dark);
+    applyAccentColor(option.value, option.dark);
   }, []);
   const setDisplayName = useCallback((name) => {
     setDisplayNameState(name);
@@ -2266,7 +2314,7 @@ function GravPackApp() {
       screen === "readiness" && /* @__PURE__ */ jsx(ReadinessScreen, { household, items, onGoToStrategy: () => setScreen("strategy"), onGoToHousehold: () => setScreen("household"), onGoToSettings: () => setScreen("settings") }),
       screen === "strategy" && /* @__PURE__ */ jsx(StrategyScreen, { household, items, onBack: () => setScreen("readiness") }),
       screen === "household" && /* @__PURE__ */ jsx(HouseholdScreen, { household, onChange: setHousehold }),
-      screen === "settings" && /* @__PURE__ */ jsx(SettingsScreen, { items, displayName, theme, onThemeChange: setTheme, onDisplayNameChange: setDisplayName, onClearAll: () => setItems([]), onImport: setItems }),
+      screen === "settings" && /* @__PURE__ */ jsx(SettingsScreen, { items, displayName, theme, accentColor, onThemeChange: setTheme, onAccentChange: setAccentColor, onDisplayNameChange: setDisplayName, onClearAll: () => setItems([]), onImport: setItems }),
       hasModal && /* @__PURE__ */ jsxs(Fragment, { children: [
         addModal.open && /* @__PURE__ */ jsx(AddItemModal, { initial: addModal.edit, onSave: handleSaveItem, onClose: () => setAddModal({
           open: false

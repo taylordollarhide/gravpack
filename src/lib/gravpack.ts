@@ -167,6 +167,41 @@ export function applyTheme(t: ThemePreference): void {
   }
 }
 
+// ─── Accent color ─────────────────────────────────────────────────────────────
+
+export interface AccentOption {
+  name: string
+  value: string
+  dark: string
+}
+
+export const ACCENT_OPTIONS: AccentOption[] = [
+  { name: 'Signal Red',  value: '#E31C23', dark: '#B81017' },
+  { name: 'Cobalt',      value: '#2563EB', dark: '#1D4ED8' },
+  { name: 'Emerald',     value: '#059669', dark: '#047857' },
+  { name: 'Violet',      value: '#7C3AED', dark: '#6D28D9' },
+  { name: 'Amber',       value: '#D97706', dark: '#B45309' },
+  { name: 'Coral',       value: '#F97316', dark: '#EA580C' },
+  { name: 'Teal',        value: '#0D9488', dark: '#0F766E' },
+  { name: 'Rose',        value: '#E11D48', dark: '#BE123C' },
+]
+
+export function loadAccentColor(): string {
+  try { return localStorage.getItem('gp_accent') || '#E31C23' } catch { return '#E31C23' }
+}
+
+export function saveAccentColor(value: string, dark: string): void {
+  try {
+    localStorage.setItem('gp_accent', value)
+    localStorage.setItem('gp_accent2', dark)
+  } catch {}
+}
+
+export function applyAccentColor(value: string, dark: string): void {
+  document.documentElement.style.setProperty('--accent', value)
+  document.documentElement.style.setProperty('--accent2', dark)
+}
+
 export function getStorageSize(): string {
   try {
     let total = 0

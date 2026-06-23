@@ -7,6 +7,7 @@ import {
   loadItems, saveItems, loadHousehold, saveHousehold,
   loadDisplayName, saveDisplayName, loadLastBackup, getStorageSize,
   type ThemePreference, loadTheme, saveTheme, applyTheme,
+  type AccentOption, ACCENT_OPTIONS, loadAccentColor, saveAccentColor, applyAccentColor,
   getExpiryStatus, getExpiryBadgeText, formatDate,
   calcScores, scoreColor, buildStrategy,
   exportCSV, parseCSV,
@@ -654,12 +655,14 @@ function StratItem({ action, rank }: { action: ReturnType<typeof buildStrategy>[
 // ─── Settings Screen ──────────────────────────────────────────────────────────
 
 function SettingsScreen({
-  items, displayName, theme, onThemeChange, onDisplayNameChange, onClearAll, onImport,
+  items, displayName, theme, accentColor, onThemeChange, onAccentChange, onDisplayNameChange, onClearAll, onImport,
 }: {
   items: Item[]
   displayName: string
   theme: ThemePreference
+  accentColor: string
   onThemeChange: (t: ThemePreference) => void
+  onAccentChange: (option: AccentOption) => void
   onDisplayNameChange: (name: string) => void
   onClearAll: () => void
   onImport: (items: Item[]) => void
@@ -722,6 +725,26 @@ function SettingsScreen({
             <span>{label}</span>
           </button>
         ))}
+      </div>
+
+      <div className="section-label">Brand color</div>
+      <div className="accent-grid">
+        {ACCENT_OPTIONS.map(option => (
+          <button
+            key={option.value}
+            className={`accent-swatch${accentColor === option.value ? ' selected' : ''}`}
+            style={{ background: option.value }}
+            onClick={() => onAccentChange(option)}
+            aria-label={option.name}
+          >
+            {accentColor === option.value && (
+              <span className="material-icons" style={{ fontSize: 18, color: '#fff' }}>check</span>
+            )}
+          </button>
+        ))}
+      </div>
+      <div className="accent-label">
+        {ACCENT_OPTIONS.find(o => o.value === accentColor)?.name ?? 'Signal Red'}
       </div>
 
       <div className="section-label">Account</div>
@@ -1408,8 +1431,14 @@ function GravPackApp() {
   const [household, setHouseholdState] = useState<Household>(loadHousehold)
   const [displayName, setDisplayNameState] = useState(loadDisplayName)
   const [theme, setThemeState] = useState<ThemePreference>(loadTheme)
+  const [accentColor, setAccentColorState] = useState<string>(loadAccentColor)
 
   useEffect(() => { applyTheme(theme) }, [theme])
+
+  useEffect(() => {
+    const option = ACCENT_OPTIONS.find(o => o.value === accentColor) ?? ACCENT_OPTIONS[0]
+    applyAccentColor(option.value, option.dark)
+  }, [accentColor])
 
   const [addModal, setAddModal] = useState<{ open: boolean; edit?: Item | null }>({ open: false })
   const [detailItem, setDetailItem] = useState<Item | null>(null)
@@ -1430,6 +1459,12 @@ function GravPackApp() {
     setThemeState(t)
     saveTheme(t)
     applyTheme(t)
+  }, [])
+
+  const setAccentColor = useCallback((option: AccentOption) => {
+    setAccentColorState(option.value)
+    saveAccentColor(option.value, option.dark)
+    applyAccentColor(option.value, option.dark)
   }, [])
 
   const setDisplayName = useCallback((name: string) => {
@@ -1543,7 +1578,9 @@ function GravPackApp() {
             items={items}
             displayName={displayName}
             theme={theme}
+            accentColor={accentColor}
             onThemeChange={setTheme}
+            onAccentChange={setAccentColor}
             onDisplayNameChange={setDisplayName}
             onClearAll={() => setItems([])}
             onImport={setItems}
