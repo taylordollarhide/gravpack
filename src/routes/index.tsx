@@ -21,14 +21,6 @@ function toTitleCase(s: string) {
   return s.replace(/\b\w/g, c => c.toUpperCase())
 }
 
-function useTime() {
-  const [t, setT] = useState(() => new Date())
-  useEffect(() => {
-    const id = setInterval(() => setT(new Date()), 30000)
-    return () => clearInterval(id)
-  }, [])
-  return t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-}
 
 // ─── Expiry badge ─────────────────────────────────────────────────────────────
 
@@ -1511,7 +1503,6 @@ function RestockModal({
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 function GravPackApp() {
-  const time = useTime()
   const [screen, setScreen] = useState<Screen>('shelf')
   const [items, setItemsState] = useState<Item[]>(loadItems)
   const [household, setHouseholdState] = useState<Household>(loadHousehold)
@@ -1642,7 +1633,21 @@ function GravPackApp() {
   return (
     <div className="gp-app">
       <div className="status-bar">
-        <span>{time}</span>
+        {(() => {
+          const scores = calcScores(household, items)
+          const foodDays = Math.floor(scores.foodDays ?? 0)
+          const activeItems = items.filter(i => !i.depleted).length
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
+              <span style={{ fontFamily: 'var(--disp)', fontSize: 16, fontWeight: 800, color: 'var(--t1)', lineHeight: 1 }}>
+                {foodDays > 0 ? `${foodDays}d food` : `${activeItems} items`}
+              </span>
+              <span style={{ fontFamily: 'var(--sans)', fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                {foodDays > 0 ? `${activeItems} items` : 'on shelf'}
+              </span>
+            </div>
+          )
+        })()}
         <img src="/GravPack-app-logo-white.png" alt="GravPack" style={{ height: 40 }} />
         <span style={{ display: 'flex', gap: 4 }}>
           <span className="material-icons" style={{ fontSize: 20 }}>bolt</span>

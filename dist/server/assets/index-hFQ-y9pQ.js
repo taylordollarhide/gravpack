@@ -701,17 +701,6 @@ function newId() {
 function toTitleCase(s) {
   return s.replace(/\b\w/g, (c) => c.toUpperCase());
 }
-function useTime() {
-  const [t, setT] = useState(() => /* @__PURE__ */ new Date());
-  useEffect(() => {
-    const id = setInterval(() => setT(/* @__PURE__ */ new Date()), 3e4);
-    return () => clearInterval(id);
-  }, []);
-  return t.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit"
-  });
-}
 function ExpiryBadge({
   expiry,
   depleted,
@@ -2266,7 +2255,6 @@ function RestockModal({
   ] }) });
 }
 function GravPackApp() {
-  const time = useTime();
   const [screen, setScreen] = useState("shelf");
   const [items, setItemsState] = useState(loadItems);
   const [household, setHouseholdState] = useState(loadHousehold);
@@ -2423,7 +2411,32 @@ function GravPackApp() {
   const hasModal = addModal.open || detailItem !== null || consumeItem !== null || restockItem !== null;
   return /* @__PURE__ */ jsxs("div", { className: "gp-app", children: [
     /* @__PURE__ */ jsxs("div", { className: "status-bar", children: [
-      /* @__PURE__ */ jsx("span", { children: time }),
+      (() => {
+        const scores = calcScores(household, items);
+        const foodDays = Math.floor(scores.foodDays ?? 0);
+        const activeItems = items.filter((i) => !i.depleted).length;
+        return /* @__PURE__ */ jsxs("div", { style: {
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: 1
+        }, children: [
+          /* @__PURE__ */ jsx("span", { style: {
+            fontFamily: "var(--disp)",
+            fontSize: 16,
+            fontWeight: 800,
+            color: "var(--t1)",
+            lineHeight: 1
+          }, children: foodDays > 0 ? `${foodDays}d food` : `${activeItems} items` }),
+          /* @__PURE__ */ jsx("span", { style: {
+            fontFamily: "var(--sans)",
+            fontSize: 10,
+            color: "var(--t3)",
+            textTransform: "uppercase",
+            letterSpacing: ".05em"
+          }, children: foodDays > 0 ? `${activeItems} items` : "on shelf" })
+        ] });
+      })(),
       /* @__PURE__ */ jsx("img", { src: "/GravPack-app-logo-white.png", alt: "GravPack", style: {
         height: 40
       } }),
