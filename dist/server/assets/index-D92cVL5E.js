@@ -708,7 +708,7 @@ function ItemCard({
         item.category && /* @__PURE__ */ jsxs(Fragment, { children: [
           " · ",
           /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-            fontSize: 13,
+            fontSize: 15,
             verticalAlign: "middle"
           }, children: CAT_EMOJI[item.category] }),
           " ",
@@ -782,7 +782,7 @@ function ShelfScreen({
     ] }),
     /* @__PURE__ */ jsx("div", { className: "search-wrap", children: /* @__PURE__ */ jsxs("div", { className: "search-bar", children: [
       /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-        fontSize: 16,
+        fontSize: 18,
         color: "var(--t3)"
       }, children: "search" }),
       /* @__PURE__ */ jsx("input", { value: search, onChange: (e) => setSearch(e.target.value), placeholder: "Search items..." }),
@@ -797,7 +797,7 @@ function ShelfScreen({
     ] }) }),
     /* @__PURE__ */ jsx("div", { className: "filter-pills", children: ["All", ...CATEGORIES].map((c) => /* @__PURE__ */ jsxs("button", { className: `fpill${catFilter === c ? " active" : ""}`, onClick: () => setCatFilter(c), children: [
       c !== "All" && /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-        fontSize: 14,
+        fontSize: 16,
         verticalAlign: "middle",
         marginRight: 3
       }, children: CAT_EMOJI[c] }),
@@ -1390,8 +1390,8 @@ function SettingsScreen({
   }, children: [
     /* @__PURE__ */ jsx("div", { className: "screen-header", children: /* @__PURE__ */ jsx("span", { className: "screen-title", children: "SETTINGS" }) }),
     /* @__PURE__ */ jsx("div", { className: "section-label", children: "Appearance" }),
-    /* @__PURE__ */ jsx("div", { className: "theme-grid", children: [["system", "⚙️", "System"], ["dark", "🌑", "Dark"], ["light", "☀️", "Light"]].map(([val, icon, label]) => /* @__PURE__ */ jsxs("button", { className: `theme-btn${theme === val ? " selected" : ""}`, onClick: () => onThemeChange(val), children: [
-      /* @__PURE__ */ jsx("span", { className: "theme-icon", children: icon }),
+    /* @__PURE__ */ jsx("div", { className: "theme-grid", children: [["system", "contrast", "System"], ["dark", "dark_mode", "Dark"], ["light", "light_mode", "Light"]].map(([val, icon, label]) => /* @__PURE__ */ jsxs("button", { className: `theme-btn${theme === val ? " selected" : ""}`, onClick: () => onThemeChange(val), children: [
+      /* @__PURE__ */ jsx("span", { className: "material-icons theme-icon", children: icon }),
       /* @__PURE__ */ jsx("span", { children: label })
     ] }, val)) }),
     /* @__PURE__ */ jsx("div", { className: "section-label", children: "Account" }),
@@ -1434,8 +1434,22 @@ function SettingsScreen({
       " · Recommendation: Weekly or after restocking"
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "backup-row", children: [
-      /* @__PURE__ */ jsx("button", { className: "backup-btn backup-export", onClick: handleExport, children: "↓ Export CSV" }),
-      /* @__PURE__ */ jsx("button", { className: "backup-btn backup-import", onClick: () => fileRef.current?.click(), children: "↑ Import CSV" }),
+      /* @__PURE__ */ jsxs("button", { className: "backup-btn backup-export", onClick: handleExport, children: [
+        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+          fontSize: 18,
+          verticalAlign: "middle",
+          marginRight: 4
+        }, children: "download" }),
+        "Export CSV"
+      ] }),
+      /* @__PURE__ */ jsxs("button", { className: "backup-btn backup-import", onClick: () => fileRef.current?.click(), children: [
+        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+          fontSize: 18,
+          verticalAlign: "middle",
+          marginRight: 4
+        }, children: "upload" }),
+        "Import CSV"
+      ] }),
       /* @__PURE__ */ jsx("input", { ref: fileRef, type: "file", accept: ".csv", style: {
         display: "none"
       }, onChange: handleImport })
@@ -1752,7 +1766,7 @@ function AddItemModal({
       step === 0 && /* @__PURE__ */ jsxs(Fragment, { children: [
         /* @__PURE__ */ jsxs("button", { className: "scan-btn", onClick: () => setShowScanner(true), children: [
           /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-            fontSize: 18,
+            fontSize: 20,
             verticalAlign: "middle"
           }, children: "qr_code_scanner" }),
           " Scan barcode"
@@ -1770,7 +1784,7 @@ function AddItemModal({
           category: c
         })), children: [
           /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-            fontSize: 18,
+            fontSize: 20,
             verticalAlign: "middle"
           }, children: CAT_EMOJI[c] }),
           " ",
@@ -1931,7 +1945,7 @@ function ItemDetailModal({
       } }),
       /* @__PURE__ */ jsxs("button", { className: "overflow-btn", onClick: () => setMenuOpen((o) => !o), children: [
         /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-          fontSize: 20
+          fontSize: 22
         }, children: "more_vert" }),
         menuOpen && /* @__PURE__ */ jsxs("div", { className: "overflow-menu", onClick: (e) => e.stopPropagation(), children: [
           /* @__PURE__ */ jsxs("div", { className: "overflow-menu-item", onClick: () => {
@@ -1939,7 +1953,7 @@ function ItemDetailModal({
             setMenuOpen(false);
           }, children: [
             /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-              fontSize: 16,
+              fontSize: 18,
               verticalAlign: "middle",
               marginRight: 6
             }, children: "edit" }),
@@ -1950,7 +1964,7 @@ function ItemDetailModal({
             setMenuOpen(false);
           }, children: [
             /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-              fontSize: 16,
+              fontSize: 18,
               verticalAlign: "middle",
               marginRight: 6
             }, children: "remove_circle_outline" }),
@@ -1961,7 +1975,7 @@ function ItemDetailModal({
             setMenuOpen(false);
           }, children: [
             /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-              fontSize: 16,
+              fontSize: 18,
               verticalAlign: "middle",
               marginRight: 6
             }, children: "refresh" }),
@@ -1977,7 +1991,7 @@ function ItemDetailModal({
     /* @__PURE__ */ jsxs("div", { className: "detail-hero", children: [
       /* @__PURE__ */ jsxs("div", { className: "detail-cat", children: [
         /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-          fontSize: 28
+          fontSize: 30
         }, children: CAT_EMOJI[item.category] }),
         /* @__PURE__ */ jsx("span", { children: item.category })
       ] }),
@@ -2239,10 +2253,10 @@ function GravPackApp() {
         gap: 4
       }, children: [
         /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-          fontSize: 18
+          fontSize: 20
         }, children: "bolt" }),
         /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-          fontSize: 18
+          fontSize: 20
         }, children: "lock" })
       ] })
     ] }),
@@ -2274,7 +2288,7 @@ function GravPackApp() {
     screen === "shelf" && !hasModal && /* @__PURE__ */ jsx("button", { className: "fab", onClick: () => setAddModal({
       open: true
     }), "aria-label": "Add item", children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-      fontSize: 28,
+      fontSize: 30,
       color: "#0d1117"
     }, children: "add" }) })
   ] });

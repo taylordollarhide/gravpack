@@ -48,7 +48,7 @@ function ItemCard({ item, onClick }: { item: Item; onClick: () => void }) {
         <div className="item-name">{item.name}</div>
         <div className="item-meta">
           {item.location && `${item.location} · `}{item.qty} {item.unit}
-          {item.category && <> · <span className="material-icons" style={{ fontSize: 13, verticalAlign: 'middle' }}>{CAT_EMOJI[item.category]}</span> {item.category}</>}
+          {item.category && <> · <span className="material-icons" style={{ fontSize: 15, verticalAlign: 'middle' }}>{CAT_EMOJI[item.category]}</span> {item.category}</>}
         </div>
       </div>
       <ExpiryBadge expiry={item.expiry} depleted={item.depleted} expiryType={item.expiryType} />
@@ -124,7 +124,7 @@ function ShelfScreen({
 
       <div className="search-wrap">
         <div className="search-bar">
-          <span className="material-icons" style={{ fontSize: 16, color: 'var(--t3)' }}>search</span>
+          <span className="material-icons" style={{ fontSize: 18, color: 'var(--t3)' }}>search</span>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -139,7 +139,7 @@ function ShelfScreen({
       <div className="filter-pills">
         {['All', ...CATEGORIES].map(c => (
           <button key={c} className={`fpill${catFilter === c ? ' active' : ''}`} onClick={() => setCatFilter(c)}>
-            {c !== 'All' && <span className="material-icons" style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 3 }}>{CAT_EMOJI[c as Category]}</span>}{c}
+            {c !== 'All' && <span className="material-icons" style={{ fontSize: 16, verticalAlign: 'middle', marginRight: 3 }}>{CAT_EMOJI[c as Category]}</span>}{c}
           </button>
         ))}
       </div>
@@ -709,16 +709,16 @@ function SettingsScreen({
       <div className="section-label">Appearance</div>
       <div className="theme-grid">
         {([
-          ['system', '⚙️', 'System'],
-          ['dark', '🌑', 'Dark'],
-          ['light', '☀️', 'Light'],
+          ['system', 'contrast', 'System'],
+          ['dark', 'dark_mode', 'Dark'],
+          ['light', 'light_mode', 'Light'],
         ] as [ThemePreference, string, string][]).map(([val, icon, label]) => (
           <button
             key={val}
             className={`theme-btn${theme === val ? ' selected' : ''}`}
             onClick={() => onThemeChange(val)}
           >
-            <span className="theme-icon">{icon}</span>
+            <span className="material-icons theme-icon">{icon}</span>
             <span>{label}</span>
           </button>
         ))}
@@ -767,8 +767,8 @@ function SettingsScreen({
         Last backup · {lastBackup || 'Never'} · Recommendation: Weekly or after restocking
       </div>
       <div className="backup-row">
-        <button className="backup-btn backup-export" onClick={handleExport}>↓ Export CSV</button>
-        <button className="backup-btn backup-import" onClick={() => fileRef.current?.click()}>↑ Import CSV</button>
+        <button className="backup-btn backup-export" onClick={handleExport}><span className="material-icons" style={{fontSize:18,verticalAlign:'middle',marginRight:4}}>download</span>Export CSV</button>
+        <button className="backup-btn backup-import" onClick={() => fileRef.current?.click()}><span className="material-icons" style={{fontSize:18,verticalAlign:'middle',marginRight:4}}>upload</span>Import CSV</button>
         <input ref={fileRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
       </div>
 
@@ -1034,7 +1034,7 @@ function AddItemModal({
         {step === 0 && (
           <>
             <button className="scan-btn" onClick={() => setShowScanner(true)}>
-              <span className="material-icons" style={{ fontSize: 18, verticalAlign: 'middle' }}>qr_code_scanner</span> Scan barcode
+              <span className="material-icons" style={{ fontSize: 20, verticalAlign: 'middle' }}>qr_code_scanner</span> Scan barcode
             </button>
             <div className="field-group">
               <div className="field-label">Item name</div>
@@ -1055,7 +1055,7 @@ function AddItemModal({
                   className={`cat-btn-form${form.category === c ? ' selected' : ''}`}
                   onClick={() => setForm(f => ({ ...f, category: c }))}
                 >
-                  <span className="material-icons" style={{ fontSize: 18, verticalAlign: 'middle' }}>{CAT_EMOJI[c]}</span> {c}
+                  <span className="material-icons" style={{ fontSize: 20, verticalAlign: 'middle' }}>{CAT_EMOJI[c]}</span> {c}
                 </button>
               ))}
             </div>
@@ -1249,15 +1249,15 @@ function ItemDetailModal({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 16px 0', position: 'relative' }}>
           <div className="modal-handle" style={{ margin: '0 auto 0' }} />
           <button className="overflow-btn" onClick={() => setMenuOpen(o => !o)}>
-            <span className="material-icons" style={{ fontSize: 20 }}>more_vert</span>
+            <span className="material-icons" style={{ fontSize: 22 }}>more_vert</span>
             {menuOpen && (
               <div className="overflow-menu" onClick={e => e.stopPropagation()}>
-                <div className="overflow-menu-item" onClick={() => { onEdit(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:16,verticalAlign:'middle',marginRight:6}}>edit</span>Edit item</div>
+                <div className="overflow-menu-item" onClick={() => { onEdit(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:18,verticalAlign:'middle',marginRight:6}}>edit</span>Edit item</div>
                 {!item.depleted && (
-                  <div className="overflow-menu-item" onClick={() => { onConsume(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:16,verticalAlign:'middle',marginRight:6}}>remove_circle_outline</span>Use item</div>
+                  <div className="overflow-menu-item" onClick={() => { onConsume(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:18,verticalAlign:'middle',marginRight:6}}>remove_circle_outline</span>Use item</div>
                 )}
                 {item.depleted && (
-                  <div className="overflow-menu-item" onClick={() => { onRestock(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:16,verticalAlign:'middle',marginRight:6}}>refresh</span>Restock</div>
+                  <div className="overflow-menu-item" onClick={() => { onRestock(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:18,verticalAlign:'middle',marginRight:6}}>refresh</span>Restock</div>
                 )}
                 <div className="overflow-menu-item danger" onClick={() => { onDelete(); setMenuOpen(false) }}>🗑 Delete</div>
               </div>
@@ -1267,7 +1267,7 @@ function ItemDetailModal({
 
         <div className="detail-hero">
           <div className="detail-cat">
-            <span className="material-icons" style={{ fontSize: 28 }}>{CAT_EMOJI[item.category]}</span>
+            <span className="material-icons" style={{ fontSize: 30 }}>{CAT_EMOJI[item.category]}</span>
             <span>{item.category}</span>
           </div>
           <div className="detail-name">{item.name}</div>
@@ -1507,8 +1507,8 @@ function GravPackApp() {
         <span>{time}</span>
         <img src="/GravPack-app-logo-white.png" alt="GravPack" style={{ height: 40 }} />
         <span style={{ display: 'flex', gap: 4 }}>
-          <span className="material-icons" style={{ fontSize: 18 }}>bolt</span>
-          <span className="material-icons" style={{ fontSize: 18 }}>lock</span>
+          <span className="material-icons" style={{ fontSize: 20 }}>bolt</span>
+          <span className="material-icons" style={{ fontSize: 20 }}>lock</span>
         </span>
       </div>
 
@@ -1598,7 +1598,7 @@ function GravPackApp() {
 
       {screen === 'shelf' && !hasModal && (
         <button className="fab" onClick={() => setAddModal({ open: true })} aria-label="Add item">
-          <span className="material-icons" style={{ fontSize: 28, color: '#0d1117' }}>add</span>
+          <span className="material-icons" style={{ fontSize: 30, color: '#0d1117' }}>add</span>
         </button>
       )}
     </div>
