@@ -48,7 +48,7 @@ function ItemCard({ item, onClick }: { item: Item; onClick: () => void }) {
         <div className="item-name">{item.name}</div>
         <div className="item-meta">
           {item.location && `${item.location} · `}{item.qty} {item.unit}
-          {item.category && ` · ${CAT_EMOJI[item.category]} ${item.category}`}
+          {item.category && <> · <span className="material-icons" style={{ fontSize: 13, verticalAlign: 'middle' }}>{CAT_EMOJI[item.category]}</span> {item.category}</>}
         </div>
       </div>
       <ExpiryBadge expiry={item.expiry} depleted={item.depleted} expiryType={item.expiryType} />
@@ -139,7 +139,7 @@ function ShelfScreen({
       <div className="filter-pills">
         {['All', ...CATEGORIES].map(c => (
           <button key={c} className={`fpill${catFilter === c ? ' active' : ''}`} onClick={() => setCatFilter(c)}>
-            {c !== 'All' ? `${CAT_EMOJI[c as Category]} ` : ''}{c}
+            {c !== 'All' && <span className="material-icons" style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 3 }}>{CAT_EMOJI[c as Category]}</span>}{c}
           </button>
         ))}
       </div>
@@ -753,7 +753,7 @@ function SettingsScreen({
           ['Version', '1.0.0 PWA'],
           ['Storage', storageSize],
           ['Items', items.length.toString()],
-          ['Data model', '🔒 localStorage'],
+          ['Data model', 'localStorage'],
         ].map(([l, v]) => (
           <div key={l} className="set-row">
             <span className="set-label">{l}</span>
@@ -1055,7 +1055,7 @@ function AddItemModal({
                   className={`cat-btn-form${form.category === c ? ' selected' : ''}`}
                   onClick={() => setForm(f => ({ ...f, category: c }))}
                 >
-                  <span style={{ fontSize: 18 }}>{CAT_EMOJI[c]}</span> {c}
+                  <span className="material-icons" style={{ fontSize: 18, verticalAlign: 'middle' }}>{CAT_EMOJI[c]}</span> {c}
                 </button>
               ))}
             </div>
@@ -1085,7 +1085,7 @@ function AddItemModal({
                 className={`date-type-btn${form.expiryType === 'expires' ? ' selected' : ''}`}
                 onClick={() => setForm(f => ({ ...f, expiryType: 'expires' }))}
               >
-                <span className="dt-icon">⚠️</span>
+                <span className="material-icons dt-icon">warning</span>
                 <span>Expires</span>
                 <span className="dt-label">Hard date</span>
               </button>
@@ -1093,7 +1093,7 @@ function AddItemModal({
                 className={`date-type-btn${form.expiryType === 'best-by' ? ' selected' : ''}`}
                 onClick={() => setForm(f => ({ ...f, expiryType: 'best-by' }))}
               >
-                <span className="dt-icon">📅</span>
+                <span className="material-icons dt-icon">calendar_today</span>
                 <span>Best By</span>
                 <span className="dt-label">Quality</span>
               </button>
@@ -1101,7 +1101,7 @@ function AddItemModal({
                 className={`date-type-btn${form.expiryType === 'none' ? ' selected' : ''}`}
                 onClick={() => setForm(f => ({ ...f, expiryType: 'none', expiry: '' }))}
               >
-                <span className="dt-icon">∞</span>
+                <span className="material-icons dt-icon">all_inclusive</span>
                 <span>No Date</span>
                 <span className="dt-label">Long life</span>
               </button>
@@ -1143,7 +1143,7 @@ function AddItemModal({
             <div className="detail-rows" style={{ margin: '0 16px 12px' }}>
               {[
                 ['Name', form.name],
-                ['Category', `${CAT_EMOJI[form.category]} ${form.category}`],
+                ['Category', form.category],
                 ['Qty', `${form.qty} ${form.unit}`],
                 ['Price', form.price ? `$${form.price}` : '—'],
                 ['Date type', form.expiryType === 'best-by' ? 'Best by' : form.expiryType === 'expires' ? 'Expires' : 'No date'],
@@ -1252,12 +1252,12 @@ function ItemDetailModal({
             <span className="material-icons" style={{ fontSize: 20 }}>more_vert</span>
             {menuOpen && (
               <div className="overflow-menu" onClick={e => e.stopPropagation()}>
-                <div className="overflow-menu-item" onClick={() => { onEdit(); setMenuOpen(false) }}>✏️ Edit item</div>
+                <div className="overflow-menu-item" onClick={() => { onEdit(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:16,verticalAlign:'middle',marginRight:6}}>edit</span>Edit item</div>
                 {!item.depleted && (
-                  <div className="overflow-menu-item" onClick={() => { onConsume(); setMenuOpen(false) }}>📦 Use item</div>
+                  <div className="overflow-menu-item" onClick={() => { onConsume(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:16,verticalAlign:'middle',marginRight:6}}>remove_circle_outline</span>Use item</div>
                 )}
                 {item.depleted && (
-                  <div className="overflow-menu-item" onClick={() => { onRestock(); setMenuOpen(false) }}>🔄 Restock</div>
+                  <div className="overflow-menu-item" onClick={() => { onRestock(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:16,verticalAlign:'middle',marginRight:6}}>refresh</span>Restock</div>
                 )}
                 <div className="overflow-menu-item danger" onClick={() => { onDelete(); setMenuOpen(false) }}>🗑 Delete</div>
               </div>
@@ -1267,7 +1267,7 @@ function ItemDetailModal({
 
         <div className="detail-hero">
           <div className="detail-cat">
-            <span>{CAT_EMOJI[item.category]}</span>
+            <span className="material-icons" style={{ fontSize: 28 }}>{CAT_EMOJI[item.category]}</span>
             <span>{item.category}</span>
           </div>
           <div className="detail-name">{item.name}</div>
@@ -1506,7 +1506,10 @@ function GravPackApp() {
       <div className="status-bar">
         <span>{time}</span>
         <img src="/GravPack-app-logo-white.png" alt="GravPack" style={{ height: 40 }} />
-        <span>⚡ 🔒</span>
+        <span style={{ display: 'flex', gap: 4 }}>
+          <span className="material-icons" style={{ fontSize: 18 }}>bolt</span>
+          <span className="material-icons" style={{ fontSize: 18 }}>lock</span>
+        </span>
       </div>
 
       <div className="screen-wrap">

@@ -5,12 +5,12 @@ const UNITS = ["units", "cans", "bottles", "lbs", "oz", "gal", "packs", "boxes",
 const LOCATIONS = ["Pantry", "Garage", "Basement", "Closet", "Bathroom", "Bedroom", "Kitchen", "Bug-out Bag", "Vehicle", "Other"];
 const CATEGORIES = ["Food", "Water", "Medical", "Power", "Tools", "Docs"];
 const CAT_EMOJI = {
-  Food: "🥫",
-  Water: "💧",
-  Medical: "💊",
-  Power: "🔋",
-  Tools: "🔦",
-  Docs: "📄"
+  Food: "soup_kitchen",
+  Water: "water_drop",
+  Medical: "medical_services",
+  Power: "bolt",
+  Tools: "construction",
+  Docs: "description"
 };
 const DEFAULT_HOUSEHOLD = {
   adults: 2,
@@ -705,7 +705,15 @@ function ItemCard({
         item.qty,
         " ",
         item.unit,
-        item.category && ` · ${CAT_EMOJI[item.category]} ${item.category}`
+        item.category && /* @__PURE__ */ jsxs(Fragment, { children: [
+          " · ",
+          /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+            fontSize: 13,
+            verticalAlign: "middle"
+          }, children: CAT_EMOJI[item.category] }),
+          " ",
+          item.category
+        ] })
       ] })
     ] }),
     /* @__PURE__ */ jsx(ExpiryBadge, { expiry: item.expiry, depleted: item.depleted, expiryType: item.expiryType })
@@ -788,7 +796,11 @@ function ShelfScreen({
       }, children: "×" })
     ] }) }),
     /* @__PURE__ */ jsx("div", { className: "filter-pills", children: ["All", ...CATEGORIES].map((c) => /* @__PURE__ */ jsxs("button", { className: `fpill${catFilter === c ? " active" : ""}`, onClick: () => setCatFilter(c), children: [
-      c !== "All" ? `${CAT_EMOJI[c]} ` : "",
+      c !== "All" && /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+        fontSize: 14,
+        verticalAlign: "middle",
+        marginRight: 3
+      }, children: CAT_EMOJI[c] }),
       c
     ] }, c)) }),
     items.length === 0 ? /* @__PURE__ */ jsxs("div", { className: "empty-state", children: [
@@ -1406,7 +1418,7 @@ function SettingsScreen({
       }, children: "Local account · no sign-in required" }) })
     ] }),
     /* @__PURE__ */ jsx("div", { className: "section-label", children: "App" }),
-    /* @__PURE__ */ jsx("div", { className: "card", children: [["Version", "1.0.0 PWA"], ["Storage", storageSize], ["Items", items.length.toString()], ["Data model", "🔒 localStorage"]].map(([l, v]) => /* @__PURE__ */ jsxs("div", { className: "set-row", children: [
+    /* @__PURE__ */ jsx("div", { className: "card", children: [["Version", "1.0.0 PWA"], ["Storage", storageSize], ["Items", items.length.toString()], ["Data model", "localStorage"]].map(([l, v]) => /* @__PURE__ */ jsxs("div", { className: "set-row", children: [
       /* @__PURE__ */ jsx("span", { className: "set-label", children: l }),
       /* @__PURE__ */ jsx("span", { className: "set-val", children: v })
     ] }, l)) }),
@@ -1757,8 +1769,9 @@ function AddItemModal({
           ...f,
           category: c
         })), children: [
-          /* @__PURE__ */ jsx("span", { style: {
-            fontSize: 18
+          /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+            fontSize: 18,
+            verticalAlign: "middle"
           }, children: CAT_EMOJI[c] }),
           " ",
           c
@@ -1782,7 +1795,7 @@ function AddItemModal({
             ...f,
             expiryType: "expires"
           })), children: [
-            /* @__PURE__ */ jsx("span", { className: "dt-icon", children: "⚠️" }),
+            /* @__PURE__ */ jsx("span", { className: "material-icons dt-icon", children: "warning" }),
             /* @__PURE__ */ jsx("span", { children: "Expires" }),
             /* @__PURE__ */ jsx("span", { className: "dt-label", children: "Hard date" })
           ] }),
@@ -1790,7 +1803,7 @@ function AddItemModal({
             ...f,
             expiryType: "best-by"
           })), children: [
-            /* @__PURE__ */ jsx("span", { className: "dt-icon", children: "📅" }),
+            /* @__PURE__ */ jsx("span", { className: "material-icons dt-icon", children: "calendar_today" }),
             /* @__PURE__ */ jsx("span", { children: "Best By" }),
             /* @__PURE__ */ jsx("span", { className: "dt-label", children: "Quality" })
           ] }),
@@ -1799,7 +1812,7 @@ function AddItemModal({
             expiryType: "none",
             expiry: ""
           })), children: [
-            /* @__PURE__ */ jsx("span", { className: "dt-icon", children: "∞" }),
+            /* @__PURE__ */ jsx("span", { className: "material-icons dt-icon", children: "all_inclusive" }),
             /* @__PURE__ */ jsx("span", { children: "No Date" }),
             /* @__PURE__ */ jsx("span", { className: "dt-label", children: "Long life" })
           ] })
@@ -1832,7 +1845,7 @@ function AddItemModal({
         }, children: "Review" }),
         /* @__PURE__ */ jsx("div", { className: "detail-rows", style: {
           margin: "0 16px 12px"
-        }, children: [["Name", form.name], ["Category", `${CAT_EMOJI[form.category]} ${form.category}`], ["Qty", `${form.qty} ${form.unit}`], ["Price", form.price ? `$${form.price}` : "—"], ["Date type", form.expiryType === "best-by" ? "Best by" : form.expiryType === "expires" ? "Expires" : "No date"], ...form.expiryType !== "none" && form.expiry ? [[form.expiryType === "best-by" ? "Best by" : "Expiry", form.expiry]] : [], ["Location", form.location || "—"]].map(([l, v]) => /* @__PURE__ */ jsxs("div", { className: "detail-row", children: [
+        }, children: [["Name", form.name], ["Category", form.category], ["Qty", `${form.qty} ${form.unit}`], ["Price", form.price ? `$${form.price}` : "—"], ["Date type", form.expiryType === "best-by" ? "Best by" : form.expiryType === "expires" ? "Expires" : "No date"], ...form.expiryType !== "none" && form.expiry ? [[form.expiryType === "best-by" ? "Best by" : "Expiry", form.expiry]] : [], ["Location", form.location || "—"]].map(([l, v]) => /* @__PURE__ */ jsxs("div", { className: "detail-row", children: [
           /* @__PURE__ */ jsx("span", { className: "dr-label", children: l }),
           /* @__PURE__ */ jsx("span", { className: "dr-val", children: v })
         ] }, l)) })
@@ -1921,18 +1934,39 @@ function ItemDetailModal({
           fontSize: 20
         }, children: "more_vert" }),
         menuOpen && /* @__PURE__ */ jsxs("div", { className: "overflow-menu", onClick: (e) => e.stopPropagation(), children: [
-          /* @__PURE__ */ jsx("div", { className: "overflow-menu-item", onClick: () => {
+          /* @__PURE__ */ jsxs("div", { className: "overflow-menu-item", onClick: () => {
             onEdit();
             setMenuOpen(false);
-          }, children: "✏️ Edit item" }),
-          !item.depleted && /* @__PURE__ */ jsx("div", { className: "overflow-menu-item", onClick: () => {
+          }, children: [
+            /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+              fontSize: 16,
+              verticalAlign: "middle",
+              marginRight: 6
+            }, children: "edit" }),
+            "Edit item"
+          ] }),
+          !item.depleted && /* @__PURE__ */ jsxs("div", { className: "overflow-menu-item", onClick: () => {
             onConsume();
             setMenuOpen(false);
-          }, children: "📦 Use item" }),
-          item.depleted && /* @__PURE__ */ jsx("div", { className: "overflow-menu-item", onClick: () => {
+          }, children: [
+            /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+              fontSize: 16,
+              verticalAlign: "middle",
+              marginRight: 6
+            }, children: "remove_circle_outline" }),
+            "Use item"
+          ] }),
+          item.depleted && /* @__PURE__ */ jsxs("div", { className: "overflow-menu-item", onClick: () => {
             onRestock();
             setMenuOpen(false);
-          }, children: "🔄 Restock" }),
+          }, children: [
+            /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+              fontSize: 16,
+              verticalAlign: "middle",
+              marginRight: 6
+            }, children: "refresh" }),
+            "Restock"
+          ] }),
           /* @__PURE__ */ jsx("div", { className: "overflow-menu-item danger", onClick: () => {
             onDelete();
             setMenuOpen(false);
@@ -1942,7 +1976,9 @@ function ItemDetailModal({
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "detail-hero", children: [
       /* @__PURE__ */ jsxs("div", { className: "detail-cat", children: [
-        /* @__PURE__ */ jsx("span", { children: CAT_EMOJI[item.category] }),
+        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+          fontSize: 28
+        }, children: CAT_EMOJI[item.category] }),
         /* @__PURE__ */ jsx("span", { children: item.category })
       ] }),
       /* @__PURE__ */ jsx("div", { className: "detail-name", children: item.name }),
@@ -2198,7 +2234,17 @@ function GravPackApp() {
       /* @__PURE__ */ jsx("img", { src: "/GravPack-app-logo-white.png", alt: "GravPack", style: {
         height: 40
       } }),
-      /* @__PURE__ */ jsx("span", { children: "⚡ 🔒" })
+      /* @__PURE__ */ jsxs("span", { style: {
+        display: "flex",
+        gap: 4
+      }, children: [
+        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+          fontSize: 18
+        }, children: "bolt" }),
+        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+          fontSize: 18
+        }, children: "lock" })
+      ] })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "screen-wrap", children: [
       screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item) }),

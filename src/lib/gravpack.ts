@@ -92,7 +92,7 @@ export const UNITS = ['units', 'cans', 'bottles', 'lbs', 'oz', 'gal', 'packs', '
 export const LOCATIONS = ['Pantry', 'Garage', 'Basement', 'Closet', 'Bathroom', 'Bedroom', 'Kitchen', 'Bug-out Bag', 'Vehicle', 'Other']
 export const CATEGORIES: Category[] = ['Food', 'Water', 'Medical', 'Power', 'Tools', 'Docs']
 export const CAT_EMOJI: Record<Category, string> = {
-  Food: '🥫', Water: '💧', Medical: '💊', Power: '🔋', Tools: '🔦', Docs: '📄'
+  Food: 'soup_kitchen', Water: 'water_drop', Medical: 'medical_services', Power: 'bolt', Tools: 'construction', Docs: 'description'
 }
 
 export const DEFAULT_HOUSEHOLD: Household = {
