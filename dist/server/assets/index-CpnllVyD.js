@@ -2302,6 +2302,22 @@ function GravPackApp() {
     label: "Settings",
     icon: /* @__PURE__ */ jsx(SettingsIcon, {})
   }];
+  const [showInstallBanner, setShowInstallBanner] = useState(() => {
+    try {
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+      const dismissed = localStorage.getItem("gravpack_install_dismissed") === "1";
+      return !isStandalone && !dismissed;
+    } catch {
+      return false;
+    }
+  });
+  const dismissInstallBanner = useCallback(() => {
+    try {
+      localStorage.setItem("gravpack_install_dismissed", "1");
+    } catch {
+    }
+    setShowInstallBanner(false);
+  }, []);
   const hasModal = addModal.open || detailItem !== null || consumeItem !== null || restockItem !== null;
   return /* @__PURE__ */ jsxs("div", { className: "gp-app", children: [
     /* @__PURE__ */ jsxs("div", { className: "status-bar", children: [
@@ -2345,6 +2361,7 @@ function GravPackApp() {
         restockItem && /* @__PURE__ */ jsx(RestockModal, { item: restockItem, onSave: handleRestock, onClose: () => setRestockItem(null) })
       ] })
     ] }),
+    showInstallBanner && !hasModal && /* @__PURE__ */ jsx(InstallBanner, { onDismiss: dismissInstallBanner }),
     /* @__PURE__ */ jsx("div", { className: "tab-bar", children: tabs.map((t) => /* @__PURE__ */ jsxs("button", { className: `tab${screen === t.id || screen === "strategy" && t.id === "readiness" ? " on" : ""}`, onClick: () => setScreen(t.id), children: [
       /* @__PURE__ */ jsx("div", { className: "tab-icon", style: {
         color: screen === t.id || screen === "strategy" && t.id === "readiness" ? "var(--accent)" : "var(--t3)"
@@ -2357,6 +2374,56 @@ function GravPackApp() {
       fontSize: 30,
       color: "#0d1117"
     }, children: "add" }) })
+  ] });
+}
+function InstallBanner({
+  onDismiss
+}) {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [installed, setInstalled] = useState(false);
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setInstalled(true));
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const {
+        outcome
+      } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") onDismiss();
+    }
+  };
+  if (installed) return null;
+  return /* @__PURE__ */ jsxs("div", { className: "install-banner", children: [
+    /* @__PURE__ */ jsx("div", { className: "install-banner-icon", children: /* @__PURE__ */ jsx("img", { src: "/app-icon-192.png", alt: "GravPack", style: {
+      width: 44,
+      height: 44,
+      borderRadius: 10
+    } }) }),
+    /* @__PURE__ */ jsxs("div", { className: "install-banner-body", children: [
+      /* @__PURE__ */ jsx("div", { className: "install-banner-title", children: "Add to Home Screen" }),
+      isIOS ? /* @__PURE__ */ jsxs("div", { className: "install-banner-sub", children: [
+        "Tap ",
+        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+          fontSize: 14,
+          verticalAlign: "middle",
+          margin: "0 2px"
+        }, children: "ios_share" }),
+        " then ",
+        /* @__PURE__ */ jsx("strong", { children: "Add to Home Screen" })
+      ] }) : deferredPrompt ? /* @__PURE__ */ jsx("div", { className: "install-banner-sub", children: "Install for offline access — no app store needed" }) : /* @__PURE__ */ jsx("div", { className: "install-banner-sub", children: "Use your browser's install option to add GravPack" })
+    ] }),
+    !isIOS && deferredPrompt && /* @__PURE__ */ jsx("button", { className: "install-banner-cta", onClick: handleInstall, children: "Install" }),
+    /* @__PURE__ */ jsx("button", { className: "install-banner-close", onClick: onDismiss, children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+      fontSize: 18
+    }, children: "close" }) })
   ] });
 }
 function ShelfIcon() {

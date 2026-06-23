@@ -1534,6 +1534,19 @@ function GravPackApp() {
     { id: 'settings', label: 'Settings', icon: <SettingsIcon /> },
   ]
 
+  const [showInstallBanner, setShowInstallBanner] = useState(() => {
+    try {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone
+      const dismissed = localStorage.getItem('gravpack_install_dismissed') === '1'
+      return !isStandalone && !dismissed
+    } catch { return false }
+  })
+
+  const dismissInstallBanner = useCallback(() => {
+    try { localStorage.setItem('gravpack_install_dismissed', '1') } catch {}
+    setShowInstallBanner(false)
+  }, [])
+
   const hasModal = addModal.open || detailItem !== null || consumeItem !== null || restockItem !== null
 
   return (
@@ -1617,6 +1630,10 @@ function GravPackApp() {
         )}
       </div>
 
+      {showInstallBanner && !hasModal && (
+        <InstallBanner onDismiss={dismissInstallBanner} />
+      )}
+
       <div className="tab-bar">
         {tabs.map(t => (
           <button
@@ -1639,6 +1656,57 @@ function GravPackApp() {
           <span className="material-icons" style={{ fontSize: 30, color: '#0d1117' }}>add</span>
         </button>
       )}
+    </div>
+  )
+}
+
+// ─── Install Banner ───────────────────────────────────────────────────────────
+
+function InstallBanner({ onDismiss }: { onDismiss: () => void }) {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
+  const [installed, setInstalled] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setDeferredPrompt(e) }
+    window.addEventListener('beforeinstallprompt', handler)
+    window.addEventListener('appinstalled', () => setInstalled(true))
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt()
+      const { outcome } = await deferredPrompt.userChoice
+      if (outcome === 'accepted') onDismiss()
+    }
+  }
+
+  if (installed) return null
+
+  return (
+    <div className="install-banner">
+      <div className="install-banner-icon">
+        <img src="/app-icon-192.png" alt="GravPack" style={{ width: 44, height: 44, borderRadius: 10 }} />
+      </div>
+      <div className="install-banner-body">
+        <div className="install-banner-title">Add to Home Screen</div>
+        {isIOS ? (
+          <div className="install-banner-sub">
+            Tap <span className="material-icons" style={{ fontSize: 14, verticalAlign: 'middle', margin: '0 2px' }}>ios_share</span> then <strong>Add to Home Screen</strong>
+          </div>
+        ) : deferredPrompt ? (
+          <div className="install-banner-sub">Install for offline access — no app store needed</div>
+        ) : (
+          <div className="install-banner-sub">Use your browser's install option to add GravPack</div>
+        )}
+      </div>
+      {!isIOS && deferredPrompt && (
+        <button className="install-banner-cta" onClick={handleInstall}>Install</button>
+      )}
+      <button className="install-banner-close" onClick={onDismiss}>
+        <span className="material-icons" style={{ fontSize: 18 }}>close</span>
+      </button>
     </div>
   )
 }
