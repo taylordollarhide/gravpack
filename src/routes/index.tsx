@@ -264,11 +264,11 @@ function ShelfScreen({
           <div className="stat-lbl">Items ›</div>
         </div>
         <div className="stat-card">
-          <div className="stat-val">{foodDays}<span style={{ color: 'var(--t3)', fontSize: '0.65em' }}>D</span></div>
+          <div className="stat-val">{foodDays}<span style={{ color: 'var(--t3)', fontSize: '0.65em' }}>/d</span></div>
           <div className="stat-lbl">Food</div>
         </div>
         <div className="stat-card">
-          <div className="stat-val">{waterDays}<span style={{ color: 'var(--t3)', fontSize: '0.65em' }}>D</span></div>
+          <div className="stat-val">{waterDays}<span style={{ color: 'var(--t3)', fontSize: '0.65em' }}>/d</span></div>
           <div className="stat-lbl">Water</div>
         </div>
         <div className="stat-card" style={{ cursor: 'pointer' }} onClick={onShowValueBreakdown}>

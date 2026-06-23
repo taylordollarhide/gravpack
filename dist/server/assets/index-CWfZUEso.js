@@ -1060,7 +1060,7 @@ function ShelfScreen({
           /* @__PURE__ */ jsx("span", { style: {
             color: "var(--t3)",
             fontSize: "0.65em"
-          }, children: "D" })
+          }, children: "/d" })
         ] }),
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Food" })
       ] }),
@@ -1070,7 +1070,7 @@ function ShelfScreen({
           /* @__PURE__ */ jsx("span", { style: {
             color: "var(--t3)",
             fontSize: "0.65em"
-          }, children: "D" })
+          }, children: "/d" })
         ] }),
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Water" })
       ] }),
