@@ -1,7 +1,7 @@
 import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
-const UNITS = ["units", "cans", "bottles", "lbs", "oz", "gal", "packs", "boxes", "bags", "tabs", "rolls", "meals"];
+const UNITS = ["units", "cans", "bottles", "jars", "pouches", "cartons", "lbs", "oz", "gal", "packs", "boxes", "bags", "tabs", "rolls", "meals"];
 const LOCATIONS = ["Pantry", "Garage", "Basement", "Closet", "Bathroom", "Bedroom", "Kitchen", "Bug-out Bag", "Vehicle", "Other"];
 const CATEGORIES = ["Food", "Water", "Medical", "Power", "Tools", "Docs"];
 const CAT_EMOJI = {

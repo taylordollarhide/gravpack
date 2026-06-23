@@ -88,7 +88,7 @@ export interface StrategyAction {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-export const UNITS = ['units', 'cans', 'bottles', 'lbs', 'oz', 'gal', 'packs', 'boxes', 'bags', 'tabs', 'rolls', 'meals']
+export const UNITS = ['units', 'cans', 'bottles', 'jars', 'pouches', 'cartons', 'lbs', 'oz', 'gal', 'packs', 'boxes', 'bags', 'tabs', 'rolls', 'meals']
 export const LOCATIONS = ['Pantry', 'Garage', 'Basement', 'Closet', 'Bathroom', 'Bedroom', 'Kitchen', 'Bug-out Bag', 'Vehicle', 'Other']
 export const CATEGORIES: Category[] = ['Food', 'Water', 'Medical', 'Power', 'Tools', 'Docs']
 export const CAT_EMOJI: Record<Category, string> = {
