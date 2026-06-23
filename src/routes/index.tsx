@@ -206,7 +206,7 @@ function RestockBreakdownModal({ items, onClose, onItemClick }: { items: Item[];
 }
 
 function ShelfScreen({
-  items, onItemClick, onRestock, deletingId, onShowValueBreakdown, onShowRestockBreakdown, onGoToExpiring,
+  items, onItemClick, onRestock, deletingId, onShowValueBreakdown, onShowRestockBreakdown, onShowItemsBreakdown, onGoToExpiring,
 }: {
   items: Item[]
   onItemClick: (item: Item) => void

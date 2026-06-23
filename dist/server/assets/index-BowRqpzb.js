@@ -1004,6 +1004,7 @@ function ShelfScreen({
   deletingId,
   onShowValueBreakdown,
   onShowRestockBreakdown,
+  onShowItemsBreakdown,
   onGoToExpiring
 }) {
   const [search, setSearch] = useState("");
