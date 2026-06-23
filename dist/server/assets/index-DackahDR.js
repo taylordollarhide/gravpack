@@ -2068,11 +2068,14 @@ function ItemDetailModal({
       /* @__PURE__ */ jsx("span", { className: "dr-label", children: l }),
       /* @__PURE__ */ jsx("span", { className: "dr-val", children: v })
     ] }, l)) }),
-    !item.depleted && /* @__PURE__ */ jsx("div", { className: "action-row", children: /* @__PURE__ */ jsx("button", { className: "action-btn", style: {
-      background: "#22c55e15",
-      borderColor: "#22c55e30",
-      color: "var(--good)"
-    }, onClick: onConsume, children: "Use item" }) }),
+    !item.depleted && /* @__PURE__ */ jsxs("div", { className: "action-row", children: [
+      /* @__PURE__ */ jsx("button", { className: "action-btn action-delete", onClick: onDelete, children: "Delete" }),
+      /* @__PURE__ */ jsx("button", { className: "action-btn", style: {
+        background: "#22c55e15",
+        borderColor: "#22c55e30",
+        color: "var(--good)"
+      }, onClick: onConsume, children: "Use item" })
+    ] }),
     item.depleted && /* @__PURE__ */ jsx("button", { className: "btn-primary", onClick: onRestock, children: "Restock item" }),
     item.priceHistory.length >= 2 && /* @__PURE__ */ jsxs("div", { className: "price-history", children: [
       /* @__PURE__ */ jsxs("div", { className: "price-history-head", children: [
@@ -2125,8 +2128,7 @@ function ItemDetailModal({
         ] })
       ] }, i)),
       consumeRate && /* @__PURE__ */ jsx("div", { className: "consume-rate", children: consumeRate })
-    ] }),
-    /* @__PURE__ */ jsx("div", { className: "action-row", children: /* @__PURE__ */ jsx("button", { className: "action-btn action-delete", onClick: onDelete, children: "Delete" }) })
+    ] })
   ] }) });
 }
 function RestockModal({

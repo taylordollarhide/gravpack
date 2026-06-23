@@ -1329,6 +1329,7 @@ function ItemDetailModal({
 
         {!item.depleted && (
           <div className="action-row">
+            <button className="action-btn action-delete" onClick={onDelete}>Delete</button>
             <button className="action-btn" style={{ background: '#22c55e15', borderColor: '#22c55e30', color: 'var(--good)' }} onClick={onConsume}>Use item</button>
           </div>
         )}
@@ -1377,9 +1378,6 @@ function ItemDetailModal({
           </div>
         )}
 
-        <div className="action-row">
-          <button className="action-btn action-delete" onClick={onDelete}>Delete</button>
-        </div>
       </div>
     </div>
   )
