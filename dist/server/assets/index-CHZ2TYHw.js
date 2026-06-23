@@ -2723,17 +2723,31 @@ function GravPackApp() {
       /* @__PURE__ */ jsx("img", { src: "/GravPack-app-logo-white.png", alt: "GravPack", style: {
         height: 40
       } }),
-      /* @__PURE__ */ jsxs("span", { style: {
-        display: "flex",
-        gap: 4
-      }, children: [
-        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-          fontSize: 20
-        }, children: "bolt" }),
-        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
-          fontSize: 20
-        }, children: "lock" })
-      ] })
+      (() => {
+        const scores = calcScores(household, items);
+        const waterDays = Math.floor(scores.waterDays ?? 0);
+        return /* @__PURE__ */ jsxs("div", { style: {
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 1
+        }, children: [
+          /* @__PURE__ */ jsx("span", { style: {
+            fontFamily: "var(--disp)",
+            fontSize: 16,
+            fontWeight: 800,
+            color: "var(--t3)",
+            lineHeight: 1
+          }, children: waterDays > 0 ? `${waterDays}d water` : "—" }),
+          /* @__PURE__ */ jsx("span", { style: {
+            fontFamily: "var(--sans)",
+            fontSize: 10,
+            color: "var(--t3)",
+            textTransform: "uppercase",
+            letterSpacing: ".05em"
+          }, children: waterDays > 0 ? "supply" : "no water" })
+        ] });
+      })()
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "screen-wrap", children: [
       screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true), onShowRestockBreakdown: () => setShowRestockBreakdown(true), onShowItemsBreakdown: () => setShowItemsBreakdown(true), onGoToExpiring: () => setScreen("expiring"), onShowLocalInfo: () => setShowLocalInfo(true) }),
