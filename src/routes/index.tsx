@@ -1374,6 +1374,25 @@ function ItemDetailModal({
           <ExpiryBadge expiry={item.expiry} depleted={item.depleted} expiryType={item.expiryType} />
         </div>
 
+        {item.calories && (
+          <div className="calorie-hero">
+            <div className="calorie-hero-block">
+              <div className="calorie-hero-val">{(item.calories * item.qty).toLocaleString()}</div>
+              <div className="calorie-hero-lbl">total kcal</div>
+            </div>
+            <div className="calorie-hero-divider" />
+            <div className="calorie-hero-block">
+              <div className="calorie-hero-val">{item.calories.toLocaleString()}</div>
+              <div className="calorie-hero-lbl">kcal / {item.unit.replace(/s$/, '')}</div>
+            </div>
+            <div className="calorie-hero-divider" />
+            <div className="calorie-hero-block">
+              <div className="calorie-hero-val">{item.qty}</div>
+              <div className="calorie-hero-lbl">{item.unit}</div>
+            </div>
+          </div>
+        )}
+
         <div className="detail-rows">
           {[
             ['Location', item.location || '—'],

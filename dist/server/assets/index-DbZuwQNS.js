@@ -2147,6 +2147,25 @@ function ItemDetailModal({
       ] }),
       /* @__PURE__ */ jsx(ExpiryBadge, { expiry: item.expiry, depleted: item.depleted, expiryType: item.expiryType })
     ] }),
+    item.calories && /* @__PURE__ */ jsxs("div", { className: "calorie-hero", children: [
+      /* @__PURE__ */ jsxs("div", { className: "calorie-hero-block", children: [
+        /* @__PURE__ */ jsx("div", { className: "calorie-hero-val", children: (item.calories * item.qty).toLocaleString() }),
+        /* @__PURE__ */ jsx("div", { className: "calorie-hero-lbl", children: "total kcal" })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "calorie-hero-divider" }),
+      /* @__PURE__ */ jsxs("div", { className: "calorie-hero-block", children: [
+        /* @__PURE__ */ jsx("div", { className: "calorie-hero-val", children: item.calories.toLocaleString() }),
+        /* @__PURE__ */ jsxs("div", { className: "calorie-hero-lbl", children: [
+          "kcal / ",
+          item.unit.replace(/s$/, "")
+        ] })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "calorie-hero-divider" }),
+      /* @__PURE__ */ jsxs("div", { className: "calorie-hero-block", children: [
+        /* @__PURE__ */ jsx("div", { className: "calorie-hero-val", children: item.qty }),
+        /* @__PURE__ */ jsx("div", { className: "calorie-hero-lbl", children: item.unit })
+      ] })
+    ] }),
     /* @__PURE__ */ jsx("div", { className: "detail-rows", children: [["Location", item.location || "—"], ["Quantity", `${item.qty} ${item.unit}`], ["Price / unit", item.price ? `$${item.price.toFixed(2)}` : "—"], ["Total value", item.price && item.qty ? `$${(item.price * item.qty).toFixed(2)}` : "—"], ...item.calories ? [["Cal / unit", `${item.calories.toLocaleString()} kcal`], ["Total calories", `${(item.calories * item.qty).toLocaleString()} kcal`]] : [], ["Category", item.category], ["Added", formatDate(item.created)], ...item.notes ? [["Notes", item.notes]] : []].map(([l, v]) => /* @__PURE__ */ jsxs("div", { className: "detail-row", children: [
       /* @__PURE__ */ jsx("span", { className: "dr-label", children: l }),
       /* @__PURE__ */ jsx("span", { className: "dr-val", children: v })
