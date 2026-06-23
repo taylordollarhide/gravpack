@@ -2425,7 +2425,7 @@ function GravPackApp() {
             fontFamily: "var(--disp)",
             fontSize: 16,
             fontWeight: 800,
-            color: "var(--t1)",
+            color: "var(--t3)",
             lineHeight: 1
           }, children: foodDays > 0 ? `${foodDays}d food` : `${activeItems} items` }),
           /* @__PURE__ */ jsx("span", { style: {
