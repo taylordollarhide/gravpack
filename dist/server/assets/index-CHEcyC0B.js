@@ -1638,6 +1638,33 @@ function mapOFFCategory(tags) {
   if (/medication|drug|medicine|supplement|vitamin|pharmacy/.test(t)) return "Medical";
   return "Food";
 }
+function parseOFFQuantity(raw) {
+  if (!raw) return {
+    qty: "",
+    unit: ""
+  };
+  const m = raw.trim().match(/^([\d.]+)\s*([a-zA-Z]+)/);
+  if (!m) return {
+    qty: "",
+    unit: ""
+  };
+  const num = m[1];
+  const rawUnit = m[2].toLowerCase();
+  const unitMap = {
+    g: "oz",
+    kg: "lbs",
+    ml: "oz",
+    l: "gal",
+    lbs: "lbs",
+    oz: "oz",
+    fl: "oz",
+    lb: "lbs"
+  };
+  return {
+    qty: num,
+    unit: unitMap[rawUnit] || "units"
+  };
+}
 function BarcodeScanner({
   onScan,
   onClose
@@ -1690,7 +1717,12 @@ function BarcodeScanner({
         const p = data.product;
         const name = p.product_name_en || p.product_name || "";
         const category = mapOFFCategory(p.categories_tags || []);
-        onScan(name ? toTitleCase(name) : "", category);
+        const {
+          qty,
+          unit
+        } = parseOFFQuantity(p.quantity);
+        const brand = p.brands ? p.brands.split(",")[0].trim() : "";
+        onScan(name ? toTitleCase(name) : "", category, qty, unit, brand);
       } else {
         setErrorMsg("Product not found — enter name manually");
         setStatus("error");
@@ -1786,11 +1818,20 @@ function AddItemModal({
   }
   const stepLabels = ["Name & Category", "Quantity & Price", "Location & Notes"];
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    showScanner && /* @__PURE__ */ jsx(BarcodeScanner, { onScan: (name, category) => {
+    showScanner && /* @__PURE__ */ jsx(BarcodeScanner, { onScan: (name, category, qty, unit, brand) => {
       setForm((f) => ({
         ...f,
         name,
-        category
+        category,
+        ...qty ? {
+          qty
+        } : {},
+        ...unit ? {
+          unit
+        } : {},
+        ...brand ? {
+          notes: brand
+        } : {}
       }));
       setShowScanner(false);
     }, onClose: () => setShowScanner(false) }),
