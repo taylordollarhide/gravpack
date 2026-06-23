@@ -223,7 +223,7 @@ const FOOD_CAL = {
   tabs: 0
 };
 function shelfFoodCal(items) {
-  return items.filter((i) => i.category === "Food" && isActive(i)).reduce((t, i) => t + i.qty * (FOOD_CAL[i.unit] ?? 300), 0);
+  return items.filter((i) => i.category === "Food" && isActive(i)).reduce((t, i) => t + i.qty * (i.calories ?? FOOD_CAL[i.unit] ?? 300), 0);
 }
 function shelfMedical(items) {
   const medItems = items.filter((i) => i.category === "Medical");
@@ -614,7 +614,7 @@ function buildStrategy(h, items) {
   return actions;
 }
 function exportCSV(items) {
-  const header = "id,name,category,qty,unit,price,expiry,expiryType,location,notes,depleted,created";
+  const header = "id,name,category,qty,unit,price,calories,expiry,expiryType,location,notes,depleted,created";
   const rows = items.map(
     (i) => [
       i.id,
@@ -623,6 +623,7 @@ function exportCSV(items) {
       i.qty,
       i.unit,
       i.price ?? "",
+      i.calories ?? "",
       i.expiry ?? "",
       i.expiryType ?? "",
       csvEsc(i.location),
@@ -663,6 +664,7 @@ function parseCSV(text) {
       qty: parseFloat(obj.qty) || 0,
       unit: obj.unit || "units",
       price: obj.price ? parseFloat(obj.price) : null,
+      calories: obj.calories ? parseFloat(obj.calories) : null,
       expiry: obj.expiry || null,
       expiryType: obj.expiryType || void 0,
       location: obj.location || "",
@@ -1556,6 +1558,7 @@ const BLANK_FORM = {
   qty: "",
   unit: "units",
   price: "",
+  calories: "",
   expiry: "",
   expiryType: "none",
   location: "",
@@ -1740,7 +1743,18 @@ function BarcodeScanner({
         const packagingUnit = parseOFFPackaging(p.packaging, p.packaging_tags);
         const unit = packagingUnit || weightUnit;
         const brand = p.brands ? p.brands.split(",")[0].trim() : "";
-        onScan(name ? toTitleCase(name) : "", category, qty, unit, brand);
+        const n = p.nutriments;
+        let calories = "";
+        if (n) {
+          const kcalPer100g = n["energy-kcal_100g"] ?? n["energy-kcal"] ?? null;
+          const grams = p.quantity ? parseFloat(p.quantity) : null;
+          if (kcalPer100g != null && grams != null && grams > 0) {
+            calories = Math.round(kcalPer100g * grams / 100).toString();
+          } else if (kcalPer100g != null) {
+            calories = Math.round(kcalPer100g).toString();
+          }
+        }
+        onScan(name ? toTitleCase(name) : "", category, qty, unit, brand, calories);
       } else {
         setErrorMsg("Product not found — enter name manually");
         setStatus("error");
@@ -1790,6 +1804,7 @@ function AddItemModal({
     qty: initial.qty.toString(),
     unit: initial.unit,
     price: initial.price?.toString() || "",
+    calories: initial.calories?.toString() || "",
     expiry: initial.expiry || "",
     expiryType: initial.expiry ? initial.expiryType === "best-by" ? "best-by" : "expires" : "none",
     location: initial.location,
@@ -1828,6 +1843,7 @@ function AddItemModal({
       qty: parseFloat(form.qty) || 0,
       unit: form.unit,
       price,
+      calories: form.calories ? parseFloat(form.calories) : null,
       expiry: form.expiryType !== "none" ? form.expiry || null : null,
       expiryType: form.expiryType !== "none" ? form.expiryType === "best-by" ? "best-by" : "expires" : void 0,
       location: form.location,
@@ -1836,7 +1852,7 @@ function AddItemModal({
   }
   const stepLabels = ["Name & Category", "Quantity & Price", "Location & Notes"];
   return /* @__PURE__ */ jsxs(Fragment, { children: [
-    showScanner && /* @__PURE__ */ jsx(BarcodeScanner, { onScan: (name, category, qty, unit, brand) => {
+    showScanner && /* @__PURE__ */ jsx(BarcodeScanner, { onScan: (name, category, qty, unit, brand, calories) => {
       setForm((f) => ({
         ...f,
         name,
@@ -1849,6 +1865,9 @@ function AddItemModal({
         } : {},
         ...brand ? {
           notes: brand
+        } : {},
+        ...calories ? {
+          calories
         } : {}
       }));
       setShowScanner(false);
@@ -1899,6 +1918,10 @@ function AddItemModal({
         /* @__PURE__ */ jsxs("div", { className: "field-group", children: [
           /* @__PURE__ */ jsx("div", { className: "field-label", children: "Price per unit (optional)" }),
           /* @__PURE__ */ jsx("input", { className: "field-input", type: "number", min: 0, step: 0.01, value: form.price, onChange: set("price"), placeholder: "0.00" })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "field-group", children: [
+          /* @__PURE__ */ jsx("div", { className: "field-label", children: "Calories per unit (optional)" }),
+          /* @__PURE__ */ jsx("input", { className: "field-input", type: "number", min: 0, value: form.calories, onChange: set("calories"), placeholder: "e.g. 350" })
         ] }),
         /* @__PURE__ */ jsx("div", { className: "field-group", children: /* @__PURE__ */ jsx("div", { className: "field-label", children: "Date type" }) }),
         /* @__PURE__ */ jsxs("div", { className: "date-type-grid", children: [
@@ -2124,7 +2147,7 @@ function ItemDetailModal({
       ] }),
       /* @__PURE__ */ jsx(ExpiryBadge, { expiry: item.expiry, depleted: item.depleted, expiryType: item.expiryType })
     ] }),
-    /* @__PURE__ */ jsx("div", { className: "detail-rows", children: [["Location", item.location || "—"], ["Quantity", `${item.qty} ${item.unit}`], ["Price / unit", item.price ? `$${item.price.toFixed(2)}` : "—"], ["Total value", item.price && item.qty ? `$${(item.price * item.qty).toFixed(2)}` : "—"], ["Category", item.category], ["Added", formatDate(item.created)], ...item.notes ? [["Notes", item.notes]] : []].map(([l, v]) => /* @__PURE__ */ jsxs("div", { className: "detail-row", children: [
+    /* @__PURE__ */ jsx("div", { className: "detail-rows", children: [["Location", item.location || "—"], ["Quantity", `${item.qty} ${item.unit}`], ["Price / unit", item.price ? `$${item.price.toFixed(2)}` : "—"], ["Total value", item.price && item.qty ? `$${(item.price * item.qty).toFixed(2)}` : "—"], ...item.calories ? [["Cal / unit", `${item.calories.toLocaleString()} kcal`], ["Total calories", `${(item.calories * item.qty).toLocaleString()} kcal`]] : [], ["Category", item.category], ["Added", formatDate(item.created)], ...item.notes ? [["Notes", item.notes]] : []].map(([l, v]) => /* @__PURE__ */ jsxs("div", { className: "detail-row", children: [
       /* @__PURE__ */ jsx("span", { className: "dr-label", children: l }),
       /* @__PURE__ */ jsx("span", { className: "dr-val", children: v })
     ] }, l)) }),
@@ -2275,6 +2298,7 @@ function GravPackApp() {
         qty: data.qty,
         unit: data.unit,
         price: data.price,
+        calories: data.calories,
         expiry: data.expiry,
         expiryType: data.expiryType,
         location: data.location,

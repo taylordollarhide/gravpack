@@ -24,6 +24,7 @@ export interface Item {
   qty: number
   unit: string
   price: number | null
+  calories: number | null
   priceHistory: PriceRecord[]
   expiry: string | null
   expiryType?: ExpiryType
@@ -291,7 +292,7 @@ const FOOD_CAL: Record<string, number> = {
 export function shelfFoodCal(items: Item[]): number {
   return items
     .filter(i => i.category === 'Food' && isActive(i))
-    .reduce((t, i) => t + i.qty * (FOOD_CAL[i.unit] ?? 300), 0)
+    .reduce((t, i) => t + i.qty * (i.calories ?? FOOD_CAL[i.unit] ?? 300), 0)
 }
 
 // ─── Shelf → medical ─────────────────────────────────────────────────────────
@@ -729,10 +730,10 @@ export function buildStrategy(h: Household, items: Item[]): StrategyAction[] {
 // ─── CSV helpers ──────────────────────────────────────────────────────────────
 
 export function exportCSV(items: Item[]): void {
-  const header = 'id,name,category,qty,unit,price,expiry,expiryType,location,notes,depleted,created'
+  const header = 'id,name,category,qty,unit,price,calories,expiry,expiryType,location,notes,depleted,created'
   const rows = items.map(i =>
     [i.id, csvEsc(i.name), i.category, i.qty, i.unit,
-      i.price ?? '', i.expiry ?? '', i.expiryType ?? '', csvEsc(i.location), csvEsc(i.notes),
+      i.price ?? '', i.calories ?? '', i.expiry ?? '', i.expiryType ?? '', csvEsc(i.location), csvEsc(i.notes),
       i.depleted ? '1' : '0', i.created
     ].join(',')
   )
@@ -768,6 +769,7 @@ export function parseCSV(text: string): Partial<Item>[] {
       qty: parseFloat(obj.qty) || 0,
       unit: obj.unit || 'units',
       price: obj.price ? parseFloat(obj.price) : null,
+      calories: obj.calories ? parseFloat(obj.calories) : null,
       expiry: obj.expiry || null,
       expiryType: (obj.expiryType as ExpiryType) || undefined,
       location: obj.location || '',

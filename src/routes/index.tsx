@@ -839,6 +839,7 @@ interface AddItemForm {
   qty: string
   unit: string
   price: string
+  calories: string
   expiry: string
   expiryType: 'expires' | 'best-by' | 'none'
   location: string
@@ -847,7 +848,7 @@ interface AddItemForm {
 
 const BLANK_FORM: AddItemForm = {
   name: '', category: 'Food', qty: '', unit: 'units',
-  price: '', expiry: '', expiryType: 'none', location: '', notes: '',
+  price: '', calories: '', expiry: '', expiryType: 'none', location: '', notes: '',
 }
 
 // ─── Barcode / date helpers ───────────────────────────────────────────────────
@@ -905,7 +906,7 @@ function parseOFFQuantity(raw: string | undefined): { qty: string; unit: string 
 }
 
 function BarcodeScanner({ onScan, onClose }: {
-  onScan: (name: string, category: Category, qty: string, unit: string, brand: string) => void
+  onScan: (name: string, category: Category, qty: string, unit: string, brand: string, calories: string) => void
   onClose: () => void
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -959,7 +960,18 @@ function BarcodeScanner({ onScan, onClose }: {
         const packagingUnit = parseOFFPackaging(p.packaging, p.packaging_tags)
         const unit = packagingUnit || weightUnit
         const brand = p.brands ? p.brands.split(',')[0].trim() : ''
-        onScan(name ? toTitleCase(name) : '', category, qty, unit, brand)
+        const n = p.nutriments
+        let calories = ''
+        if (n) {
+          const kcalPer100g = n['energy-kcal_100g'] ?? n['energy-kcal'] ?? null
+          const grams = p.quantity ? parseFloat(p.quantity) : null
+          if (kcalPer100g != null && grams != null && grams > 0) {
+            calories = Math.round(kcalPer100g * grams / 100).toString()
+          } else if (kcalPer100g != null) {
+            calories = Math.round(kcalPer100g).toString()
+          }
+        }
+        onScan(name ? toTitleCase(name) : '', category, qty, unit, brand, calories)
       } else {
         setErrorMsg('Product not found — enter name manually')
         setStatus('error')
@@ -1022,6 +1034,7 @@ function AddItemModal({
     qty: initial.qty.toString(),
     unit: initial.unit,
     price: initial.price?.toString() || '',
+    calories: initial.calories?.toString() || '',
     expiry: initial.expiry || '',
     expiryType: initial.expiry ? (initial.expiryType === 'best-by' ? 'best-by' : 'expires') : 'none',
     location: initial.location,
@@ -1055,6 +1068,7 @@ function AddItemModal({
       qty: parseFloat(form.qty) || 0,
       unit: form.unit,
       price,
+      calories: form.calories ? parseFloat(form.calories) : null,
       expiry: form.expiryType !== 'none' ? (form.expiry || null) : null,
       expiryType: form.expiryType !== 'none' ? (form.expiryType === 'best-by' ? 'best-by' : 'expires') : undefined,
       location: form.location,
@@ -1068,7 +1082,7 @@ function AddItemModal({
     <>
     {showScanner && (
       <BarcodeScanner
-        onScan={(name, category, qty, unit, brand) => {
+        onScan={(name, category, qty, unit, brand, calories) => {
           setForm(f => ({
             ...f,
             name,
@@ -1076,6 +1090,7 @@ function AddItemModal({
             ...(qty ? { qty } : {}),
             ...(unit ? { unit } : {}),
             ...(brand ? { notes: brand } : {}),
+            ...(calories ? { calories } : {}),
           }))
           setShowScanner(false)
         }}
@@ -1139,6 +1154,10 @@ function AddItemModal({
             <div className="field-group">
               <div className="field-label">Price per unit (optional)</div>
               <input className="field-input" type="number" min={0} step={0.01} value={form.price} onChange={set('price')} placeholder="0.00" />
+            </div>
+            <div className="field-group">
+              <div className="field-label">Calories per unit (optional)</div>
+              <input className="field-input" type="number" min={0} value={form.calories} onChange={set('calories')} placeholder="e.g. 350" />
             </div>
             <div className="field-group">
               <div className="field-label">Date type</div>
@@ -1357,6 +1376,10 @@ function ItemDetailModal({
             ['Quantity', `${item.qty} ${item.unit}`],
             ['Price / unit', item.price ? `$${item.price.toFixed(2)}` : '—'],
             ['Total value', item.price && item.qty ? `$${(item.price * item.qty).toFixed(2)}` : '—'],
+            ...(item.calories ? [
+              ['Cal / unit', `${item.calories.toLocaleString()} kcal`],
+              ['Total calories', `${(item.calories * item.qty).toLocaleString()} kcal`],
+            ] : []),
             ['Category', item.category],
             ['Added', formatDate(item.created)],
             ...(item.notes ? [['Notes', item.notes]] : []),
@@ -1517,7 +1540,7 @@ function GravPackApp() {
       setItems(items.map(i => i.id === data.id ? {
         ...i,
         name: data.name, category: data.category, qty: data.qty, unit: data.unit,
-        price: data.price, expiry: data.expiry, expiryType: data.expiryType,
+        price: data.price, calories: data.calories, expiry: data.expiry, expiryType: data.expiryType,
         location: data.location, notes: data.notes,
         priceHistory: data.priceHistory ?? i.priceHistory,
       } : i))
