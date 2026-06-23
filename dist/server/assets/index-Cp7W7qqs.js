@@ -838,6 +838,92 @@ function ValueBreakdownModal({
     ] })
   ] }) });
 }
+function ItemsBreakdownModal({
+  items,
+  onClose
+}) {
+  const activeItems = items.filter((i) => !i.depleted);
+  const total = activeItems.length;
+  const byCategory = CATEGORIES.map((cat) => {
+    const catItems = activeItems.filter((i) => i.category === cat);
+    return {
+      cat,
+      count: catItems.length,
+      totalQty: catItems.reduce((s, i) => s + i.qty, 0)
+    };
+  }).filter((r) => r.count > 0).sort((a, b) => b.count - a.count);
+  return /* @__PURE__ */ jsx("div", { className: "modal-overlay", onClick: (e) => {
+    if (e.target === e.currentTarget) onClose();
+  }, children: /* @__PURE__ */ jsxs("div", { className: "modal-sheet", onClick: (e) => e.stopPropagation(), children: [
+    /* @__PURE__ */ jsxs("div", { style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      padding: "12px 16px 0"
+    }, children: [
+      /* @__PURE__ */ jsx("div", { style: {
+        width: 36
+      } }),
+      /* @__PURE__ */ jsx("div", { className: "modal-handle", style: {
+        position: "absolute",
+        left: "50%",
+        transform: "translateX(-50%)",
+        top: 20
+      } }),
+      /* @__PURE__ */ jsx("button", { className: "overflow-btn", onClick: onClose, children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+        fontSize: 22
+      }, children: "close" }) })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "detail-hero", style: {
+      paddingBottom: 8
+    }, children: [
+      /* @__PURE__ */ jsxs("div", { className: "detail-name", children: [
+        total,
+        " items"
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "detail-qty", children: "active inventory by category" })
+    ] }),
+    /* @__PURE__ */ jsx("div", { style: {
+      padding: "8px 16px 24px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }, children: byCategory.map(({
+      cat,
+      count,
+      totalQty
+    }) => {
+      const pct = total > 0 ? count / total * 100 : 0;
+      return /* @__PURE__ */ jsxs("div", { className: "value-breakdown-row", children: [
+        /* @__PURE__ */ jsxs("div", { className: "value-breakdown-header", children: [
+          /* @__PURE__ */ jsxs("div", { style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 8
+          }, children: [
+            /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+              fontSize: 18,
+              color: "var(--t3)"
+            }, children: CAT_EMOJI[cat] }),
+            /* @__PURE__ */ jsx("span", { className: "value-breakdown-cat", children: cat }),
+            /* @__PURE__ */ jsxs("span", { className: "value-breakdown-count", children: [
+              totalQty,
+              " units"
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs("span", { className: "value-breakdown-val", children: [
+            count,
+            " item",
+            count !== 1 ? "s" : ""
+          ] })
+        ] }),
+        /* @__PURE__ */ jsx("div", { className: "value-breakdown-bar-track", children: /* @__PURE__ */ jsx("div", { className: "value-breakdown-bar-fill", style: {
+          width: `${pct}%`
+        } }) })
+      ] }, cat);
+    }) })
+  ] }) });
+}
 function RestockBreakdownModal({
   items,
   onClose,
@@ -956,9 +1042,11 @@ function ShelfScreen({
       ] })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "stats-bar", children: [
-      /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
+      /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
+        cursor: "pointer"
+      }, onClick: onShowItemsBreakdown, children: [
         /* @__PURE__ */ jsx("div", { className: "stat-val", children: totalItems }),
-        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Items" })
+        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Items ›" })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
         cursor: expiredCount > 0 ? "pointer" : "default"
@@ -2461,6 +2549,7 @@ function GravPackApp() {
   const [detailItem, setDetailItem] = useState(null);
   const [showValueBreakdown, setShowValueBreakdown] = useState(false);
   const [showRestockBreakdown, setShowRestockBreakdown] = useState(false);
+  const [showItemsBreakdown, setShowItemsBreakdown] = useState(false);
   const [consumeItem, setConsumeItem] = useState(null);
   const [restockItem, setRestockItem] = useState(null);
   const setItems = useCallback((items2) => {
@@ -2642,7 +2731,7 @@ function GravPackApp() {
       ] })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "screen-wrap", children: [
-      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true), onShowRestockBreakdown: () => setShowRestockBreakdown(true), onGoToExpiring: () => setScreen("expiring") }),
+      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true), onShowRestockBreakdown: () => setShowRestockBreakdown(true), onShowItemsBreakdown: () => setShowItemsBreakdown(true), onGoToExpiring: () => setScreen("expiring") }),
       screen === "expiring" && /* @__PURE__ */ jsx(ExpiringScreen, { items, onItemClick: (item) => setDetailItem(item) }),
       screen === "readiness" && /* @__PURE__ */ jsx(ReadinessScreen, { household, items, onGoToStrategy: () => setScreen("strategy"), onGoToHousehold: () => setScreen("household"), onGoToSettings: () => setScreen("settings") }),
       screen === "strategy" && /* @__PURE__ */ jsx(StrategyScreen, { household, items, onBack: () => setScreen("readiness") }),
@@ -2682,7 +2771,8 @@ function GravPackApp() {
     showRestockBreakdown && /* @__PURE__ */ jsx(RestockBreakdownModal, { items, onClose: () => setShowRestockBreakdown(false), onItemClick: (item) => {
       setDetailItem(item);
       setShowRestockBreakdown(false);
-    } })
+    } }),
+    showItemsBreakdown && /* @__PURE__ */ jsx(ItemsBreakdownModal, { items, onClose: () => setShowItemsBreakdown(false) })
   ] });
 }
 function InstallBanner({
