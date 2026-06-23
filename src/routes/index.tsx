@@ -1270,11 +1270,10 @@ function ItemDetailModal({
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className="modal-sheet" onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 16px 0', position: 'relative' }}>
-          <div className="modal-handle" style={{ margin: '0 auto 0' }} />
           <button className="overflow-btn" onClick={() => setMenuOpen(o => !o)}>
             <span className="material-icons" style={{ fontSize: 22 }}>more_vert</span>
             {menuOpen && (
-              <div className="overflow-menu" onClick={e => e.stopPropagation()}>
+              <div className="overflow-menu" style={{ left: 0, right: 'auto' }} onClick={e => e.stopPropagation()}>
                 <div className="overflow-menu-item" onClick={() => { onEdit(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:18,verticalAlign:'middle',marginRight:6}}>edit</span>Edit item</div>
                 {!item.depleted && (
                   <div className="overflow-menu-item" onClick={() => { onConsume(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:18,verticalAlign:'middle',marginRight:6}}>remove_circle_outline</span>Use item</div>
@@ -1282,9 +1281,13 @@ function ItemDetailModal({
                 {item.depleted && (
                   <div className="overflow-menu-item" onClick={() => { onRestock(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:18,verticalAlign:'middle',marginRight:6}}>refresh</span>Restock</div>
                 )}
-                <div className="overflow-menu-item danger" onClick={() => { onDelete(); setMenuOpen(false) }}>🗑 Delete</div>
+                <div className="overflow-menu-item danger" onClick={() => { onDelete(); setMenuOpen(false) }}><span className="material-icons" style={{fontSize:18,verticalAlign:'middle',marginRight:6}}>delete_outline</span>Delete</div>
               </div>
             )}
+          </button>
+          <div className="modal-handle" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 8 }} />
+          <button className="overflow-btn" onClick={onClose}>
+            <span className="material-icons" style={{ fontSize: 22 }}>close</span>
           </button>
         </div>
 
@@ -1326,7 +1329,6 @@ function ItemDetailModal({
 
         {!item.depleted && (
           <div className="action-row">
-            <button className="action-btn action-edit" onClick={onEdit}>Edit</button>
             <button className="action-btn" style={{ background: '#22c55e15', borderColor: '#22c55e30', color: 'var(--good)' }} onClick={onConsume}>Use item</button>
           </div>
         )}
@@ -1376,7 +1378,6 @@ function ItemDetailModal({
         )}
 
         <div className="action-row">
-          <button className="action-btn action-edit" onClick={onClose}>Close</button>
           <button className="action-btn action-delete" onClick={onDelete}>Delete</button>
         </div>
       </div>

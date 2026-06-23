@@ -1978,14 +1978,14 @@ function ItemDetailModal({
       padding: "12px 16px 0",
       position: "relative"
     }, children: [
-      /* @__PURE__ */ jsx("div", { className: "modal-handle", style: {
-        margin: "0 auto 0"
-      } }),
       /* @__PURE__ */ jsxs("button", { className: "overflow-btn", onClick: () => setMenuOpen((o) => !o), children: [
         /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
           fontSize: 22
         }, children: "more_vert" }),
-        menuOpen && /* @__PURE__ */ jsxs("div", { className: "overflow-menu", onClick: (e) => e.stopPropagation(), children: [
+        menuOpen && /* @__PURE__ */ jsxs("div", { className: "overflow-menu", style: {
+          left: 0,
+          right: "auto"
+        }, onClick: (e) => e.stopPropagation(), children: [
           /* @__PURE__ */ jsxs("div", { className: "overflow-menu-item", onClick: () => {
             onEdit();
             setMenuOpen(false);
@@ -2019,12 +2019,28 @@ function ItemDetailModal({
             }, children: "refresh" }),
             "Restock"
           ] }),
-          /* @__PURE__ */ jsx("div", { className: "overflow-menu-item danger", onClick: () => {
+          /* @__PURE__ */ jsxs("div", { className: "overflow-menu-item danger", onClick: () => {
             onDelete();
             setMenuOpen(false);
-          }, children: "🗑 Delete" })
+          }, children: [
+            /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+              fontSize: 18,
+              verticalAlign: "middle",
+              marginRight: 6
+            }, children: "delete_outline" }),
+            "Delete"
+          ] })
         ] })
-      ] })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "modal-handle", style: {
+        position: "absolute",
+        left: "50%",
+        transform: "translateX(-50%)",
+        top: 8
+      } }),
+      /* @__PURE__ */ jsx("button", { className: "overflow-btn", onClick: onClose, children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+        fontSize: 22
+      }, children: "close" }) })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "detail-hero", children: [
       /* @__PURE__ */ jsxs("div", { className: "detail-cat", children: [
@@ -2052,14 +2068,11 @@ function ItemDetailModal({
       /* @__PURE__ */ jsx("span", { className: "dr-label", children: l }),
       /* @__PURE__ */ jsx("span", { className: "dr-val", children: v })
     ] }, l)) }),
-    !item.depleted && /* @__PURE__ */ jsxs("div", { className: "action-row", children: [
-      /* @__PURE__ */ jsx("button", { className: "action-btn action-edit", onClick: onEdit, children: "Edit" }),
-      /* @__PURE__ */ jsx("button", { className: "action-btn", style: {
-        background: "#22c55e15",
-        borderColor: "#22c55e30",
-        color: "var(--good)"
-      }, onClick: onConsume, children: "Use item" })
-    ] }),
+    !item.depleted && /* @__PURE__ */ jsx("div", { className: "action-row", children: /* @__PURE__ */ jsx("button", { className: "action-btn", style: {
+      background: "#22c55e15",
+      borderColor: "#22c55e30",
+      color: "var(--good)"
+    }, onClick: onConsume, children: "Use item" }) }),
     item.depleted && /* @__PURE__ */ jsx("button", { className: "btn-primary", onClick: onRestock, children: "Restock item" }),
     item.priceHistory.length >= 2 && /* @__PURE__ */ jsxs("div", { className: "price-history", children: [
       /* @__PURE__ */ jsxs("div", { className: "price-history-head", children: [
@@ -2113,10 +2126,7 @@ function ItemDetailModal({
       ] }, i)),
       consumeRate && /* @__PURE__ */ jsx("div", { className: "consume-rate", children: consumeRate })
     ] }),
-    /* @__PURE__ */ jsxs("div", { className: "action-row", children: [
-      /* @__PURE__ */ jsx("button", { className: "action-btn action-edit", onClick: onClose, children: "Close" }),
-      /* @__PURE__ */ jsx("button", { className: "action-btn action-delete", onClick: onDelete, children: "Delete" })
-    ] })
+    /* @__PURE__ */ jsx("div", { className: "action-row", children: /* @__PURE__ */ jsx("button", { className: "action-btn action-delete", onClick: onDelete, children: "Delete" }) })
   ] }) });
 }
 function RestockModal({
