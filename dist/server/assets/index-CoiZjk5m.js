@@ -838,12 +838,87 @@ function ValueBreakdownModal({
     ] })
   ] }) });
 }
+function RestockBreakdownModal({
+  items,
+  onClose,
+  onItemClick
+}) {
+  const depleted = items.filter((i) => i.depleted);
+  const byCategory = CATEGORIES.map((cat) => ({
+    cat,
+    items: depleted.filter((i) => i.category === cat)
+  })).filter((r) => r.items.length > 0);
+  return /* @__PURE__ */ jsx("div", { className: "modal-overlay", onClick: (e) => {
+    if (e.target === e.currentTarget) onClose();
+  }, children: /* @__PURE__ */ jsxs("div", { className: "modal-sheet", onClick: (e) => e.stopPropagation(), children: [
+    /* @__PURE__ */ jsxs("div", { style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      padding: "12px 16px 0"
+    }, children: [
+      /* @__PURE__ */ jsx("div", { style: {
+        width: 36
+      } }),
+      /* @__PURE__ */ jsx("div", { className: "modal-handle", style: {
+        position: "absolute",
+        left: "50%",
+        transform: "translateX(-50%)",
+        top: 20
+      } }),
+      /* @__PURE__ */ jsx("button", { className: "overflow-btn", onClick: onClose, children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+        fontSize: 22
+      }, children: "close" }) })
+    ] }),
+    /* @__PURE__ */ jsxs("div", { className: "detail-hero", style: {
+      paddingBottom: 8
+    }, children: [
+      /* @__PURE__ */ jsxs("div", { className: "detail-name", children: [
+        depleted.length,
+        " to restock"
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "detail-qty", children: "tap an item to restock it" })
+    ] }),
+    /* @__PURE__ */ jsx("div", { style: {
+      padding: "0 0 24px"
+    }, children: byCategory.map(({
+      cat,
+      items: catItems
+    }) => /* @__PURE__ */ jsxs("div", { children: [
+      /* @__PURE__ */ jsxs("div", { className: "section-dot-row", children: [
+        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+          fontSize: 14,
+          color: "var(--t3)"
+        }, children: CAT_EMOJI[cat] }),
+        cat
+      ] }),
+      catItems.map((item) => /* @__PURE__ */ jsxs("div", { className: "item-card", style: {
+        opacity: 0.85
+      }, onClick: () => {
+        onItemClick(item);
+        onClose();
+      }, children: [
+        /* @__PURE__ */ jsxs("div", { className: "item-left", children: [
+          /* @__PURE__ */ jsx("div", { className: "item-name", children: item.name }),
+          /* @__PURE__ */ jsxs("div", { className: "item-meta", children: [
+            item.location || "—",
+            " · ",
+            item.unit
+          ] })
+        ] }),
+        /* @__PURE__ */ jsx("span", { className: "badge badge-depleted", children: "Depleted" })
+      ] }, item.id))
+    ] }, cat)) })
+  ] }) });
+}
 function ShelfScreen({
   items,
   onItemClick,
   onRestock,
   deletingId,
-  onShowValueBreakdown
+  onShowValueBreakdown,
+  onShowRestockBreakdown,
+  onGoToExpiring
 }) {
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
@@ -885,13 +960,23 @@ function ShelfScreen({
         /* @__PURE__ */ jsx("div", { className: "stat-val", children: totalItems }),
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Items" })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
+      /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
+        cursor: expiredCount > 0 ? "pointer" : "default"
+      }, onClick: expiredCount > 0 ? onGoToExpiring : void 0, children: [
         /* @__PURE__ */ jsx("div", { className: `stat-val${expiredCount > 0 ? " danger" : ""}`, children: expiredCount }),
-        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Expired" })
+        /* @__PURE__ */ jsxs("div", { className: "stat-lbl", children: [
+          "Expired",
+          expiredCount > 0 ? " ›" : ""
+        ] })
       ] }),
-      /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
+      /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
+        cursor: restockCount > 0 ? "pointer" : "default"
+      }, onClick: restockCount > 0 ? onShowRestockBreakdown : void 0, children: [
         /* @__PURE__ */ jsx("div", { className: `stat-val${restockCount > 0 ? " danger" : ""}`, children: restockCount }),
-        /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Restock" })
+        /* @__PURE__ */ jsxs("div", { className: "stat-lbl", children: [
+          "Restock",
+          restockCount > 0 ? " ›" : ""
+        ] })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
         cursor: "pointer"
@@ -2375,6 +2460,7 @@ function GravPackApp() {
   });
   const [detailItem, setDetailItem] = useState(null);
   const [showValueBreakdown, setShowValueBreakdown] = useState(false);
+  const [showRestockBreakdown, setShowRestockBreakdown] = useState(false);
   const [consumeItem, setConsumeItem] = useState(null);
   const [restockItem, setRestockItem] = useState(null);
   const setItems = useCallback((items2) => {
@@ -2556,7 +2642,7 @@ function GravPackApp() {
       ] })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "screen-wrap", children: [
-      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true) }),
+      screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true), onShowRestockBreakdown: () => setShowRestockBreakdown(true), onGoToExpiring: () => setScreen("expiring") }),
       screen === "expiring" && /* @__PURE__ */ jsx(ExpiringScreen, { items, onItemClick: (item) => setDetailItem(item) }),
       screen === "readiness" && /* @__PURE__ */ jsx(ReadinessScreen, { household, items, onGoToStrategy: () => setScreen("strategy"), onGoToHousehold: () => setScreen("household"), onGoToSettings: () => setScreen("settings") }),
       screen === "strategy" && /* @__PURE__ */ jsx(StrategyScreen, { household, items, onBack: () => setScreen("readiness") }),
@@ -2592,7 +2678,11 @@ function GravPackApp() {
       fontSize: 30,
       color: "#0d1117"
     }, children: "add" }) }),
-    showValueBreakdown && /* @__PURE__ */ jsx(ValueBreakdownModal, { items, onClose: () => setShowValueBreakdown(false) })
+    showValueBreakdown && /* @__PURE__ */ jsx(ValueBreakdownModal, { items, onClose: () => setShowValueBreakdown(false) }),
+    showRestockBreakdown && /* @__PURE__ */ jsx(RestockBreakdownModal, { items, onClose: () => setShowRestockBreakdown(false), onItemClick: (item) => {
+      setDetailItem(item);
+      setShowRestockBreakdown(false);
+    } })
   ] });
 }
 function InstallBanner({

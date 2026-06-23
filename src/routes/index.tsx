@@ -109,14 +109,63 @@ function ValueBreakdownModal({ items, onClose }: { items: Item[]; onClose: () =>
   )
 }
 
+function RestockBreakdownModal({ items, onClose, onItemClick }: { items: Item[]; onClose: () => void; onItemClick: (item: Item) => void }) {
+  const depleted = items.filter(i => i.depleted)
+  const byCategory = CATEGORIES.map(cat => ({
+    cat,
+    items: depleted.filter(i => i.category === cat),
+  })).filter(r => r.items.length > 0)
+
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="modal-sheet" onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 16px 0' }}>
+          <div style={{ width: 36 }} />
+          <div className="modal-handle" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 20 }} />
+          <button className="overflow-btn" onClick={onClose}>
+            <span className="material-icons" style={{ fontSize: 22 }}>close</span>
+          </button>
+        </div>
+
+        <div className="detail-hero" style={{ paddingBottom: 8 }}>
+          <div className="detail-name">{depleted.length} to restock</div>
+          <div className="detail-qty">tap an item to restock it</div>
+        </div>
+
+        <div style={{ padding: '0 0 24px' }}>
+          {byCategory.map(({ cat, items: catItems }) => (
+            <div key={cat}>
+              <div className="section-dot-row">
+                <span className="material-icons" style={{ fontSize: 14, color: 'var(--t3)' }}>{CAT_EMOJI[cat]}</span>
+                {cat}
+              </div>
+              {catItems.map(item => (
+                <div key={item.id} className="item-card" style={{ opacity: 0.85 }} onClick={() => { onItemClick(item); onClose() }}>
+                  <div className="item-left">
+                    <div className="item-name">{item.name}</div>
+                    <div className="item-meta">{item.location || '—'} · {item.unit}</div>
+                  </div>
+                  <span className="badge badge-depleted">Depleted</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ShelfScreen({
-  items, onItemClick, onRestock, deletingId, onShowValueBreakdown,
+  items, onItemClick, onRestock, deletingId, onShowValueBreakdown, onShowRestockBreakdown, onGoToExpiring,
 }: {
   items: Item[]
   onItemClick: (item: Item) => void
   onRestock: (item: Item) => void
   deletingId?: string | null
   onShowValueBreakdown: () => void
+  onShowRestockBreakdown: () => void
+  onGoToExpiring: () => void
 }) {
   const [search, setSearch] = useState('')
   const [catFilter, setCatFilter] = useState<string>('All')
@@ -161,13 +210,13 @@ function ShelfScreen({
           <div className="stat-val">{totalItems}</div>
           <div className="stat-lbl">Items</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: expiredCount > 0 ? 'pointer' : 'default' }} onClick={expiredCount > 0 ? onGoToExpiring : undefined}>
           <div className={`stat-val${expiredCount > 0 ? ' danger' : ''}`}>{expiredCount}</div>
-          <div className="stat-lbl">Expired</div>
+          <div className="stat-lbl">Expired{expiredCount > 0 ? ' ›' : ''}</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card" style={{ cursor: restockCount > 0 ? 'pointer' : 'default' }} onClick={restockCount > 0 ? onShowRestockBreakdown : undefined}>
           <div className={`stat-val${restockCount > 0 ? ' danger' : ''}`}>{restockCount}</div>
-          <div className="stat-lbl">Restock</div>
+          <div className="stat-lbl">Restock{restockCount > 0 ? ' ›' : ''}</div>
         </div>
         <div className="stat-card" style={{ cursor: 'pointer' }} onClick={onShowValueBreakdown}>
           <div className="stat-val">${totalValue.toFixed(0)}</div>
@@ -1579,6 +1628,7 @@ function GravPackApp() {
   const [addModal, setAddModal] = useState<{ open: boolean; edit?: Item | null }>({ open: false })
   const [detailItem, setDetailItem] = useState<Item | null>(null)
   const [showValueBreakdown, setShowValueBreakdown] = useState(false)
+  const [showRestockBreakdown, setShowRestockBreakdown] = useState(false)
   const [consumeItem, setConsumeItem] = useState<Item | null>(null)
   const [restockItem, setRestockItem] = useState<Item | null>(null)
 
@@ -1723,6 +1773,8 @@ function GravPackApp() {
             onRestock={item => setRestockItem(item)}
             deletingId={deletingId}
             onShowValueBreakdown={() => setShowValueBreakdown(true)}
+            onShowRestockBreakdown={() => setShowRestockBreakdown(true)}
+            onGoToExpiring={() => setScreen('expiring')}
           />
         )}
         {screen === 'expiring' && (
@@ -1816,6 +1868,9 @@ function GravPackApp() {
 
       {showValueBreakdown && (
         <ValueBreakdownModal items={items} onClose={() => setShowValueBreakdown(false)} />
+      )}
+      {showRestockBreakdown && (
+        <RestockBreakdownModal items={items} onClose={() => setShowRestockBreakdown(false)} onItemClick={item => { setDetailItem(item); setShowRestockBreakdown(false) }} />
       )}
     </div>
   )
