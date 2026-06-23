@@ -471,7 +471,16 @@ function ReadinessScreen({
   const hasHousehold = household.adults + household.kids + household.seniors > 0
   const scores = calcScores(household, items)
 
-  const covPct = Math.min((scores.coverageDays / 90) * 100, 100)
+  // Non-linear scale matching evenly-spaced marks: 0,3,7,14,30,90 (5 segments = 20% each)
+  const foodDaysVal = scores.foodDays ?? 0
+  const covPct = (() => {
+    const v = Math.min(foodDaysVal, 90)
+    if (v <= 3)  return (v / 3) * 20
+    if (v <= 7)  return 20 + ((v - 3) / 4) * 20
+    if (v <= 14) return 40 + ((v - 7) / 7) * 20
+    if (v <= 30) return 60 + ((v - 14) / 16) * 20
+    return 80 + ((v - 30) / 60) * 20
+  })()
 
   const cats = [
     { name: 'Water', score: scores.water, detail: scores.waterDetail },
@@ -518,12 +527,12 @@ function ReadinessScreen({
             </div>
           </div>
 
-          <div className="section-label">Coverage days</div>
+          <div className="section-label">Food Coverage Days</div>
           <div className="days-card">
             <div className="days-row">
               <div>
-                <div className="days-big">{scores.coverageDays > 0 ? scores.coverageDays.toFixed(0) : '0'}</div>
-                <div className="days-sub">days full coverage · TARGET · 30d</div>
+                <div className="days-big">{foodDaysVal > 0 ? Math.floor(foodDaysVal).toString() : '0'}</div>
+                <div className="days-sub">days of food · TARGET · 30d</div>
               </div>
             </div>
             <div className="cov-track">

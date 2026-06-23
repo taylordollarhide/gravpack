@@ -1272,7 +1272,15 @@ function ReadinessScreen({
 }) {
   const hasHousehold = household.adults + household.kids + household.seniors > 0;
   const scores = calcScores(household, items);
-  const covPct = Math.min(scores.coverageDays / 90 * 100, 100);
+  const foodDaysVal = scores.foodDays ?? 0;
+  const covPct = (() => {
+    const v = Math.min(foodDaysVal, 90);
+    if (v <= 3) return v / 3 * 20;
+    if (v <= 7) return 20 + (v - 3) / 4 * 20;
+    if (v <= 14) return 40 + (v - 7) / 7 * 20;
+    if (v <= 30) return 60 + (v - 14) / 16 * 20;
+    return 80 + (v - 30) / 60 * 20;
+  })();
   const cats = [{
     name: "Water",
     score: scores.water,
@@ -1334,11 +1342,11 @@ function ReadinessScreen({
           c.score
         ] }, c.name)) })
       ] }),
-      /* @__PURE__ */ jsx("div", { className: "section-label", children: "Coverage days" }),
+      /* @__PURE__ */ jsx("div", { className: "section-label", children: "Food Coverage Days" }),
       /* @__PURE__ */ jsxs("div", { className: "days-card", children: [
         /* @__PURE__ */ jsx("div", { className: "days-row", children: /* @__PURE__ */ jsxs("div", { children: [
-          /* @__PURE__ */ jsx("div", { className: "days-big", children: scores.coverageDays > 0 ? scores.coverageDays.toFixed(0) : "0" }),
-          /* @__PURE__ */ jsx("div", { className: "days-sub", children: "days full coverage · TARGET · 30d" })
+          /* @__PURE__ */ jsx("div", { className: "days-big", children: foodDaysVal > 0 ? Math.floor(foodDaysVal).toString() : "0" }),
+          /* @__PURE__ */ jsx("div", { className: "days-sub", children: "days of food · TARGET · 30d" })
         ] }) }),
         /* @__PURE__ */ jsx("div", { className: "cov-track", children: /* @__PURE__ */ jsx("div", { className: "cov-fill", style: {
           width: `${covPct}%`
