@@ -1640,6 +1640,20 @@ function mapOFFCategory(tags) {
   if (/medication|drug|medicine|supplement|vitamin|pharmacy/.test(t)) return "Medical";
   return "Food";
 }
+function parseOFFPackaging(packaging) {
+  if (!packaging) return "";
+  const p = packaging.toLowerCase();
+  if (/\bcan(s)?\b/.test(p)) return "cans";
+  if (/\bjar(s)?\b/.test(p)) return "jars";
+  if (/\bpouch(es)?\b/.test(p) || /\bsachet/.test(p)) return "pouches";
+  if (/\bcarton(s)?\b/.test(p) || /\btetra/.test(p)) return "cartons";
+  if (/\bbox(es)?\b/.test(p)) return "boxes";
+  if (/\bbag(s)?\b/.test(p)) return "bags";
+  if (/\bbottle(s)?\b/.test(p)) return "bottles";
+  if (/\bpack(s|age)?\b/.test(p)) return "packs";
+  if (/\btab(let)?s?\b/.test(p)) return "tabs";
+  return "";
+}
 function parseOFFQuantity(raw) {
   if (!raw) return {
     qty: "",
@@ -1721,8 +1735,10 @@ function BarcodeScanner({
         const category = mapOFFCategory(p.categories_tags || []);
         const {
           qty,
-          unit
+          unit: weightUnit
         } = parseOFFQuantity(p.quantity);
+        const packagingUnit = parseOFFPackaging(p.packaging);
+        const unit = packagingUnit || weightUnit;
         const brand = p.brands ? p.brands.split(",")[0].trim() : "";
         onScan(name ? toTitleCase(name) : "", category, qty, unit, brand);
       } else {

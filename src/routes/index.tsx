@@ -876,6 +876,21 @@ function mapOFFCategory(tags: string[]): Category {
 
 // ─── Barcode Scanner ──────────────────────────────────────────────────────────
 
+function parseOFFPackaging(packaging: string | undefined): string {
+  if (!packaging) return ''
+  const p = packaging.toLowerCase()
+  if (/\bcan(s)?\b/.test(p))    return 'cans'
+  if (/\bjar(s)?\b/.test(p))    return 'jars'
+  if (/\bpouch(es)?\b/.test(p) || /\bsachet/.test(p)) return 'pouches'
+  if (/\bcarton(s)?\b/.test(p) || /\btetra/.test(p))  return 'cartons'
+  if (/\bbox(es)?\b/.test(p))   return 'boxes'
+  if (/\bbag(s)?\b/.test(p))    return 'bags'
+  if (/\bbottle(s)?\b/.test(p)) return 'bottles'
+  if (/\bpack(s|age)?\b/.test(p)) return 'packs'
+  if (/\btab(let)?s?\b/.test(p)) return 'tabs'
+  return ''
+}
+
 function parseOFFQuantity(raw: string | undefined): { qty: string; unit: string } {
   if (!raw) return { qty: '', unit: '' }
   const m = raw.trim().match(/^([\d.]+)\s*([a-zA-Z]+)/)
@@ -940,7 +955,9 @@ function BarcodeScanner({ onScan, onClose }: {
         const p = data.product
         const name = p.product_name_en || p.product_name || ''
         const category = mapOFFCategory(p.categories_tags || [])
-        const { qty, unit } = parseOFFQuantity(p.quantity)
+        const { qty, unit: weightUnit } = parseOFFQuantity(p.quantity)
+        const packagingUnit = parseOFFPackaging(p.packaging)
+        const unit = packagingUnit || weightUnit
         const brand = p.brands ? p.brands.split(',')[0].trim() : ''
         onScan(name ? toTitleCase(name) : '', category, qty, unit, brand)
       } else {
