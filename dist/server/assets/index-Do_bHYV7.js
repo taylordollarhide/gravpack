@@ -2685,38 +2685,11 @@ function GravPackApp() {
   }, []);
   const hasModal = addModal.open || detailItem !== null || consumeItem !== null || restockItem !== null;
   return /* @__PURE__ */ jsxs("div", { className: "gp-app", children: [
-    /* @__PURE__ */ jsxs("div", { className: "status-bar", children: [
-      /* @__PURE__ */ jsxs("div", { style: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
-        gap: 1
-      }, children: [
-        /* @__PURE__ */ jsxs("span", { style: {
-          fontFamily: "var(--disp)",
-          fontSize: 16,
-          fontWeight: 800,
-          color: "var(--t3)",
-          lineHeight: 1
-        }, children: [
-          items.filter((i) => !i.depleted).length,
-          " items"
-        ] }),
-        /* @__PURE__ */ jsx("span", { style: {
-          fontFamily: "var(--sans)",
-          fontSize: 10,
-          color: "var(--t3)",
-          textTransform: "uppercase",
-          letterSpacing: ".05em"
-        }, children: "on shelf" })
-      ] }),
-      /* @__PURE__ */ jsx("img", { src: "/GravPack-app-logo-white.png", alt: "GravPack", style: {
-        height: 40
-      } }),
-      /* @__PURE__ */ jsx("div", { style: {
-        width: 60
-      } })
-    ] }),
+    /* @__PURE__ */ jsx("div", { className: "status-bar", style: {
+      justifyContent: "center"
+    }, children: /* @__PURE__ */ jsx("img", { src: "/GravPack-app-logo-white.png", alt: "GravPack", style: {
+      height: 40
+    } }) }),
     /* @__PURE__ */ jsxs("div", { className: "screen-wrap", children: [
       screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, household, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true), onShowRestockBreakdown: () => setShowRestockBreakdown(true), onShowItemsBreakdown: () => setShowItemsBreakdown(true), onGoToExpiring: () => setScreen("expiring"), onShowLocalInfo: () => setShowLocalInfo(true) }),
       screen === "expiring" && /* @__PURE__ */ jsx(ExpiringScreen, { items, onItemClick: (item) => setDetailItem(item) }),

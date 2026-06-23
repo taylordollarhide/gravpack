@@ -1797,17 +1797,8 @@ function GravPackApp() {
 
   return (
     <div className="gp-app">
-      <div className="status-bar">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-          <span style={{ fontFamily: 'var(--disp)', fontSize: 16, fontWeight: 800, color: 'var(--t3)', lineHeight: 1 }}>
-            {items.filter(i => !i.depleted).length} items
-          </span>
-          <span style={{ fontFamily: 'var(--sans)', fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
-            on shelf
-          </span>
-        </div>
+      <div className="status-bar" style={{ justifyContent: 'center' }}>
         <img src="/GravPack-app-logo-white.png" alt="GravPack" style={{ height: 40 }} />
-        <div style={{ width: 60 }} />
       </div>
 
       <div className="screen-wrap">
