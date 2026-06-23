@@ -1241,7 +1241,7 @@ function ConsumeModal({
 // ─── Item Detail Modal ────────────────────────────────────────────────────────
 
 function ItemDetailModal({
-  item, onClose, onEdit, onConsume, onDelete, onRestock,
+  item, onClose, onEdit, onConsume, onDelete, onRestock, onAdd,
 }: {
   item: Item
   onClose: () => void
@@ -1249,6 +1249,7 @@ function ItemDetailModal({
   onConsume: () => void
   onDelete: () => void
   onRestock: () => void
+  onAdd: () => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const status = getExpiryStatus(item.expiry, item.expiryType)
@@ -1329,7 +1330,7 @@ function ItemDetailModal({
 
         {!item.depleted && (
           <div className="action-row">
-            <button className="action-btn action-delete" onClick={onDelete}>Delete</button>
+            <button className="action-btn" onClick={onAdd}>Add item</button>
             <button className="action-btn" style={{ background: '#22c55e15', borderColor: '#22c55e30', color: 'var(--good)' }} onClick={onConsume}>Use item</button>
           </div>
         )}
@@ -1603,6 +1604,7 @@ function GravPackApp() {
                 onConsume={() => setConsumeItem(detailItem)}
                 onDelete={() => handleDelete(detailItem)}
                 onRestock={() => setRestockItem(detailItem)}
+                onAdd={() => { setDetailItem(null); setAddModal({ open: true }) }}
               />
             )}
             {consumeItem && (

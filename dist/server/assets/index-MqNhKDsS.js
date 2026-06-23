@@ -1952,7 +1952,8 @@ function ItemDetailModal({
   onEdit,
   onConsume,
   onDelete,
-  onRestock
+  onRestock,
+  onAdd
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const status = getExpiryStatus(item.expiry, item.expiryType);
@@ -2069,7 +2070,7 @@ function ItemDetailModal({
       /* @__PURE__ */ jsx("span", { className: "dr-val", children: v })
     ] }, l)) }),
     !item.depleted && /* @__PURE__ */ jsxs("div", { className: "action-row", children: [
-      /* @__PURE__ */ jsx("button", { className: "action-btn action-delete", onClick: onDelete, children: "Delete" }),
+      /* @__PURE__ */ jsx("button", { className: "action-btn", onClick: onAdd, children: "Add item" }),
       /* @__PURE__ */ jsx("button", { className: "action-btn", style: {
         background: "#22c55e15",
         borderColor: "#22c55e30",
@@ -2334,7 +2335,12 @@ function GravPackApp() {
         detailItem && !consumeItem && !restockItem && !addModal.open && /* @__PURE__ */ jsx(ItemDetailModal, { item: detailItem, onClose: () => setDetailItem(null), onEdit: () => setAddModal({
           open: true,
           edit: detailItem
-        }), onConsume: () => setConsumeItem(detailItem), onDelete: () => handleDelete(detailItem), onRestock: () => setRestockItem(detailItem) }),
+        }), onConsume: () => setConsumeItem(detailItem), onDelete: () => handleDelete(detailItem), onRestock: () => setRestockItem(detailItem), onAdd: () => {
+          setDetailItem(null);
+          setAddModal({
+            open: true
+          });
+        } }),
         consumeItem && /* @__PURE__ */ jsx(ConsumeModal, { item: consumeItem, onConfirm: handleConsume, onClose: () => setConsumeItem(null) }),
         restockItem && /* @__PURE__ */ jsx(RestockModal, { item: restockItem, onSave: handleRestock, onClose: () => setRestockItem(null) })
       ] })
