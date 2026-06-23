@@ -1228,6 +1228,10 @@ function AddItemModal({
                 ['Category', form.category],
                 ['Qty', `${form.qty} ${form.unit}`],
                 ['Price', form.price ? `$${form.price}` : '—'],
+                ...(form.calories ? [
+                  ['Cal / unit', `${Number(form.calories).toLocaleString()} kcal`],
+                  ['Total calories', `${(parseFloat(form.calories) * (parseFloat(form.qty) || 1)).toLocaleString()} kcal`],
+                ] : []),
                 ['Date type', form.expiryType === 'best-by' ? 'Best by' : form.expiryType === 'expires' ? 'Expires' : 'No date'],
                 ...(form.expiryType !== 'none' && form.expiry ? [[form.expiryType === 'best-by' ? 'Best by' : 'Expiry', form.expiry]] : []),
                 ['Location', form.location || '—'],

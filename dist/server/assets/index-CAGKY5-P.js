@@ -1979,7 +1979,7 @@ function AddItemModal({
         }, children: "Review" }),
         /* @__PURE__ */ jsx("div", { className: "detail-rows", style: {
           margin: "0 16px 12px"
-        }, children: [["Name", form.name], ["Category", form.category], ["Qty", `${form.qty} ${form.unit}`], ["Price", form.price ? `$${form.price}` : "—"], ["Date type", form.expiryType === "best-by" ? "Best by" : form.expiryType === "expires" ? "Expires" : "No date"], ...form.expiryType !== "none" && form.expiry ? [[form.expiryType === "best-by" ? "Best by" : "Expiry", form.expiry]] : [], ["Location", form.location || "—"]].map(([l, v]) => /* @__PURE__ */ jsxs("div", { className: "detail-row", children: [
+        }, children: [["Name", form.name], ["Category", form.category], ["Qty", `${form.qty} ${form.unit}`], ["Price", form.price ? `$${form.price}` : "—"], ...form.calories ? [["Cal / unit", `${Number(form.calories).toLocaleString()} kcal`], ["Total calories", `${(parseFloat(form.calories) * (parseFloat(form.qty) || 1)).toLocaleString()} kcal`]] : [], ["Date type", form.expiryType === "best-by" ? "Best by" : form.expiryType === "expires" ? "Expires" : "No date"], ...form.expiryType !== "none" && form.expiry ? [[form.expiryType === "best-by" ? "Best by" : "Expiry", form.expiry]] : [], ["Location", form.location || "—"]].map(([l, v]) => /* @__PURE__ */ jsxs("div", { className: "detail-row", children: [
           /* @__PURE__ */ jsx("span", { className: "dr-label", children: l }),
           /* @__PURE__ */ jsx("span", { className: "dr-val", children: v })
         ] }, l)) })
