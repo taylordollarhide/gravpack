@@ -1009,6 +1009,7 @@ function ShelfScreen({
 }) {
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("All");
+  const [showLocalInfo, setShowLocalInfo] = useState(false);
   const filtered = items.filter((i) => {
     if (i.depleted) return false;
     if (catFilter !== "All" && i.category !== catFilter) return false;
@@ -1033,14 +1034,104 @@ function ShelfScreen({
   }, children: [
     /* @__PURE__ */ jsxs("div", { className: "screen-header", children: [
       /* @__PURE__ */ jsx("span", { className: "screen-title", children: "SHELF" }),
-      /* @__PURE__ */ jsxs("span", { className: "local-badge", children: [
+      /* @__PURE__ */ jsxs("span", { className: "local-badge", style: {
+        cursor: "pointer"
+      }, onClick: () => setShowLocalInfo(true), children: [
         /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
           fontSize: 8,
           color: "var(--good)",
           verticalAlign: "middle"
         }, children: "circle" }),
         "LOCAL ONLY"
-      ] })
+      ] }),
+      showLocalInfo && /* @__PURE__ */ jsx("div", { className: "modal-overlay", onClick: () => setShowLocalInfo(false), children: /* @__PURE__ */ jsxs("div", { className: "modal-sheet", onClick: (e) => e.stopPropagation(), children: [
+        /* @__PURE__ */ jsxs("div", { style: {
+          display: "flex",
+          justifyContent: "flex-end",
+          padding: "12px 16px 0"
+        }, children: [
+          /* @__PURE__ */ jsx("div", { className: "modal-handle", style: {
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
+            top: 20
+          } }),
+          /* @__PURE__ */ jsx("button", { className: "overflow-btn", onClick: () => setShowLocalInfo(false), children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+            fontSize: 22
+          }, children: "close" }) })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "detail-hero", style: {
+          paddingBottom: 4
+        }, children: [
+          /* @__PURE__ */ jsxs("div", { style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginBottom: 8
+          }, children: [
+            /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+              fontSize: 28,
+              color: "var(--good)"
+            }, children: "lock" }),
+            /* @__PURE__ */ jsx("div", { className: "detail-name", style: {
+              fontSize: 24
+            }, children: "Your data stays on your device" })
+          ] }),
+          /* @__PURE__ */ jsx("div", { className: "detail-qty", children: "GravPack never sends your inventory to a server." })
+        ] }),
+        /* @__PURE__ */ jsx("div", { style: {
+          padding: "4px 20px 32px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 20
+        }, children: [{
+          icon: "storage",
+          title: "Stored locally",
+          body: "Everything lives in your browser's local storage — no account, no cloud, no syncing."
+        }, {
+          icon: "wifi_off",
+          title: "Works offline",
+          body: "Add items, check expiry dates, and view your readiness score with no internet connection."
+        }, {
+          icon: "visibility_off",
+          title: "Completely private",
+          body: "No one can see what you have stocked. Your preparedness data is yours alone."
+        }, {
+          icon: "download",
+          title: "Back up anytime",
+          body: "Export a CSV from Settings to keep a copy. Restore it on any device running GravPack."
+        }].map(({
+          icon,
+          title,
+          body
+        }) => /* @__PURE__ */ jsxs("div", { style: {
+          display: "flex",
+          gap: 14,
+          alignItems: "flex-start"
+        }, children: [
+          /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+            fontSize: 22,
+            color: "var(--accent)",
+            flexShrink: 0,
+            marginTop: 1
+          }, children: icon }),
+          /* @__PURE__ */ jsxs("div", { children: [
+            /* @__PURE__ */ jsx("div", { style: {
+              fontFamily: "var(--sans)",
+              fontSize: 14,
+              fontWeight: 700,
+              color: "var(--t1)",
+              marginBottom: 3
+            }, children: title }),
+            /* @__PURE__ */ jsx("div", { style: {
+              fontFamily: "var(--sans)",
+              fontSize: 13,
+              color: "var(--t3)",
+              lineHeight: 1.5
+            }, children: body })
+          ] })
+        ] }, title)) })
+      ] }) })
     ] }),
     /* @__PURE__ */ jsxs("div", { className: "stats-bar", children: [
       /* @__PURE__ */ jsxs("div", { className: "stat-card", style: {
