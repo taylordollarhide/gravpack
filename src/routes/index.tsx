@@ -1629,13 +1629,11 @@ function GravPackApp() {
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
     try {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone
-      const dismissed = localStorage.getItem('gravpack_install_dismissed') === '1'
-      return !isStandalone && !dismissed
+      return !isStandalone
     } catch { return false }
   })
 
   const dismissInstallBanner = useCallback(() => {
-    try { localStorage.setItem('gravpack_install_dismissed', '1') } catch {}
     setShowInstallBanner(false)
   }, [])
 
