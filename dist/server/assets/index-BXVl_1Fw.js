@@ -743,7 +743,11 @@ function ShelfScreen({
     /* @__PURE__ */ jsxs("div", { className: "screen-header", children: [
       /* @__PURE__ */ jsx("span", { className: "screen-title", children: "SHELF" }),
       /* @__PURE__ */ jsxs("span", { className: "local-badge", children: [
-        /* @__PURE__ */ jsx("svg", { width: "8", height: "8", viewBox: "0 0 8 8", fill: "none", children: /* @__PURE__ */ jsx("circle", { cx: "4", cy: "4", r: "3", fill: "var(--good)" }) }),
+        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+          fontSize: 8,
+          color: "var(--good)",
+          verticalAlign: "middle"
+        }, children: "circle" }),
         "LOCAL ONLY"
       ] })
     ] }),
@@ -769,10 +773,10 @@ function ShelfScreen({
       ] })
     ] }),
     /* @__PURE__ */ jsx("div", { className: "search-wrap", children: /* @__PURE__ */ jsxs("div", { className: "search-bar", children: [
-      /* @__PURE__ */ jsxs("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
-        /* @__PURE__ */ jsx("circle", { cx: "11", cy: "11", r: "8" }),
-        /* @__PURE__ */ jsx("path", { d: "m21 21-4.35-4.35" })
-      ] }),
+      /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+        fontSize: 16,
+        color: "var(--t3)"
+      }, children: "search" }),
       /* @__PURE__ */ jsx("input", { value: search, onChange: (e) => setSearch(e.target.value), placeholder: "Search items..." }),
       search && /* @__PURE__ */ jsx("button", { onClick: () => setSearch(""), style: {
         background: "none",
@@ -1735,7 +1739,10 @@ function AddItemModal({
       /* @__PURE__ */ jsx("div", { className: "steps-bar", children: [0, 1, 2].map((i) => /* @__PURE__ */ jsx("div", { className: `step${i < step ? " done" : i === step ? " active" : ""}` }, i)) }),
       step === 0 && /* @__PURE__ */ jsxs(Fragment, { children: [
         /* @__PURE__ */ jsxs("button", { className: "scan-btn", onClick: () => setShowScanner(true), children: [
-          /* @__PURE__ */ jsx("span", { children: "📷" }),
+          /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+            fontSize: 18,
+            verticalAlign: "middle"
+          }, children: "qr_code_scanner" }),
           " Scan barcode"
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "field-group", children: [
@@ -1910,11 +1917,9 @@ function ItemDetailModal({
         margin: "0 auto 0"
       } }),
       /* @__PURE__ */ jsxs("button", { className: "overflow-btn", onClick: () => setMenuOpen((o) => !o), children: [
-        /* @__PURE__ */ jsxs("svg", { width: "16", height: "16", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", children: [
-          /* @__PURE__ */ jsx("circle", { cx: "12", cy: "5", r: "1", fill: "currentColor" }),
-          /* @__PURE__ */ jsx("circle", { cx: "12", cy: "12", r: "1", fill: "currentColor" }),
-          /* @__PURE__ */ jsx("circle", { cx: "12", cy: "19", r: "1", fill: "currentColor" })
-        ] }),
+        /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+          fontSize: 20
+        }, children: "more_vert" }),
         menuOpen && /* @__PURE__ */ jsxs("div", { className: "overflow-menu", onClick: (e) => e.stopPropagation(), children: [
           /* @__PURE__ */ jsx("div", { className: "overflow-menu-item", onClick: () => {
             onEdit();
@@ -2222,34 +2227,26 @@ function GravPackApp() {
     ] }, t.id)) }),
     screen === "shelf" && !hasModal && /* @__PURE__ */ jsx("button", { className: "fab", onClick: () => setAddModal({
       open: true
-    }), "aria-label": "Add item", children: /* @__PURE__ */ jsx("svg", { width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "#0d1117", strokeWidth: "2.5", children: /* @__PURE__ */ jsx("path", { d: "M12 5v14M5 12h14" }) }) })
+    }), "aria-label": "Add item", children: /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+      fontSize: 28,
+      color: "#0d1117"
+    }, children: "add" }) })
   ] });
 }
 function ShelfIcon() {
-  return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", children: [
-    /* @__PURE__ */ jsx("rect", { x: "3", y: "3", width: "18", height: "18", rx: "2" }),
-    /* @__PURE__ */ jsx("line", { x1: "3", y1: "9", x2: "21", y2: "9" }),
-    /* @__PURE__ */ jsx("line", { x1: "3", y1: "15", x2: "21", y2: "15" })
-  ] });
+  return /* @__PURE__ */ jsx("span", { className: "material-icons", children: "inventory_2" });
 }
 function ExpiringIcon() {
-  return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", children: [
-    /* @__PURE__ */ jsx("circle", { cx: "12", cy: "12", r: "9" }),
-    /* @__PURE__ */ jsx("line", { x1: "12", y1: "7", x2: "12", y2: "12" }),
-    /* @__PURE__ */ jsx("line", { x1: "12", y1: "12", x2: "15", y2: "15" })
-  ] });
+  return /* @__PURE__ */ jsx("span", { className: "material-icons", children: "schedule" });
 }
 function ReadyIcon() {
-  return /* @__PURE__ */ jsx("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", children: /* @__PURE__ */ jsx("path", { d: "M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" }) });
+  return /* @__PURE__ */ jsx("span", { className: "material-icons", children: "verified_user" });
 }
 function HouseIcon() {
-  return /* @__PURE__ */ jsx("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", children: /* @__PURE__ */ jsx("path", { d: "M3 9L12 2L21 9V20A1 1 0 0 1 20 21H15V15H9V21H4A1 1 0 0 1 3 20V9Z" }) });
+  return /* @__PURE__ */ jsx("span", { className: "material-icons", children: "group" });
 }
 function SettingsIcon() {
-  return /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", children: [
-    /* @__PURE__ */ jsx("circle", { cx: "12", cy: "12", r: "3" }),
-    /* @__PURE__ */ jsx("path", { d: "M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" })
-  ] });
+  return /* @__PURE__ */ jsx("span", { className: "material-icons", children: "settings" });
 }
 export {
   GravPackApp as component

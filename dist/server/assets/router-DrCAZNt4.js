@@ -11,7 +11,17 @@ const Route$1 = createRootRoute({
       { name: "apple-mobile-web-app-title", content: "GravPack" },
       { name: "application-name", content: "GravPack" },
       { name: "theme-color", content: "#080b10" },
-      { title: "GravPack — Know What You Have" }
+      { title: "GravPack — Know What You Have" },
+      { property: "og:title", content: "GravPack — Know What You Have" },
+      { property: "og:description", content: "Preparedness without the paranoia. Track your pantry, water, medications, and go-bags in one clean system." },
+      { property: "og:image", content: "https://gravpackwebsite.netlify.app/og-image.png" },
+      { property: "og:image:width", content: "1270" },
+      { property: "og:image:height", content: "840" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "GravPack — Know What You Have" },
+      { name: "twitter:description", content: "Preparedness without the paranoia. Track your pantry, water, medications, and go-bags in one clean system." },
+      { name: "twitter:image", content: "https://gravpackwebsite.netlify.app/og-image.png" }
     ],
     links: [
       { rel: "preload", as: "image", href: "/GravPack-stacked-logo.png" },
@@ -19,7 +29,8 @@ const Route$1 = createRootRoute({
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/app-icon-192.png" },
       { rel: "icon", type: "image/png", sizes: "512x512", href: "/app-icon-512.png" },
       { rel: "apple-touch-icon", sizes: "192x192", href: "/app-icon-192.png" },
-      { rel: "apple-touch-icon", sizes: "512x512", href: "/app-icon-512.png" }
+      { rel: "apple-touch-icon", sizes: "512x512", href: "/app-icon-512.png" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/icon?family=Material+Icons" }
     ]
   }),
   shellComponent: RootDocument
@@ -28,6 +39,14 @@ function RootDocument({ children }) {
   return /* @__PURE__ */ jsxs("html", { lang: "en", children: [
     /* @__PURE__ */ jsxs("head", { children: [
       /* @__PURE__ */ jsx(HeadContent, {}),
+      /* @__PURE__ */ jsx("meta", { property: "og:title", content: "GravPack — Know What You Have" }),
+      /* @__PURE__ */ jsx("meta", { property: "og:description", content: "Preparedness without the paranoia. Track your pantry, water, medications, and go-bags in one clean system." }),
+      /* @__PURE__ */ jsx("meta", { property: "og:image", content: "https://gravpackwebsite.netlify.app/og-image.png" }),
+      /* @__PURE__ */ jsx("meta", { property: "og:image:width", content: "1270" }),
+      /* @__PURE__ */ jsx("meta", { property: "og:image:height", content: "840" }),
+      /* @__PURE__ */ jsx("meta", { property: "og:type", content: "website" }),
+      /* @__PURE__ */ jsx("meta", { name: "twitter:card", content: "summary_large_image" }),
+      /* @__PURE__ */ jsx("meta", { name: "twitter:image", content: "https://gravpackwebsite.netlify.app/og-image.png" }),
       /* @__PURE__ */ jsx("style", { dangerouslySetInnerHTML: { __html: `
           #gp-splash {
             position: fixed;
@@ -135,7 +154,7 @@ function RootDocument({ children }) {
     ] })
   ] });
 }
-const $$splitComponentImporter = () => import("./index-_CwE9V5z.js");
+const $$splitComponentImporter = () => import("./index-BXVl_1Fw.js");
 const Route = createFileRoute("/")({
   component: lazyRouteComponent($$splitComponentImporter, "component")
 });

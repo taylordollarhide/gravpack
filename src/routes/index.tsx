@@ -98,9 +98,7 @@ function ShelfScreen({
       <div className="screen-header">
         <span className="screen-title">SHELF</span>
         <span className="local-badge">
-          <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-            <circle cx="4" cy="4" r="3" fill="var(--good)" />
-          </svg>
+          <span className="material-icons" style={{ fontSize: 8, color: 'var(--good)', verticalAlign: 'middle' }}>circle</span>
           LOCAL ONLY
         </span>
       </div>
@@ -126,9 +124,7 @@ function ShelfScreen({
 
       <div className="search-wrap">
         <div className="search-bar">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-          </svg>
+          <span className="material-icons" style={{ fontSize: 16, color: 'var(--t3)' }}>search</span>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -1038,7 +1034,7 @@ function AddItemModal({
         {step === 0 && (
           <>
             <button className="scan-btn" onClick={() => setShowScanner(true)}>
-              <span>📷</span> Scan barcode
+              <span className="material-icons" style={{ fontSize: 18, verticalAlign: 'middle' }}>qr_code_scanner</span> Scan barcode
             </button>
             <div className="field-group">
               <div className="field-label">Item name</div>
@@ -1253,11 +1249,7 @@ function ItemDetailModal({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '12px 16px 0', position: 'relative' }}>
           <div className="modal-handle" style={{ margin: '0 auto 0' }} />
           <button className="overflow-btn" onClick={() => setMenuOpen(o => !o)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="5" r="1" fill="currentColor" />
-              <circle cx="12" cy="12" r="1" fill="currentColor" />
-              <circle cx="12" cy="19" r="1" fill="currentColor" />
-            </svg>
+            <span className="material-icons" style={{ fontSize: 20 }}>more_vert</span>
             {menuOpen && (
               <div className="overflow-menu" onClick={e => e.stopPropagation()}>
                 <div className="overflow-menu-item" onClick={() => { onEdit(); setMenuOpen(false) }}>✏️ Edit item</div>
@@ -1603,9 +1595,7 @@ function GravPackApp() {
 
       {screen === 'shelf' && !hasModal && (
         <button className="fab" onClick={() => setAddModal({ open: true })} aria-label="Add item">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d1117" strokeWidth="2.5">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+          <span className="material-icons" style={{ fontSize: 28, color: '#0d1117' }}>add</span>
         </button>
       )}
     </div>
@@ -1614,43 +1604,11 @@ function GravPackApp() {
 
 // ─── Tab icons ────────────────────────────────────────────────────────────────
 
-function ShelfIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <line x1="3" y1="9" x2="21" y2="9" /><line x1="3" y1="15" x2="21" y2="15" />
-    </svg>
-  )
-}
-function ExpiringIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="12" cy="12" r="9" /><line x1="12" y1="7" x2="12" y2="12" /><line x1="12" y1="12" x2="15" y2="15" />
-    </svg>
-  )
-}
-function ReadyIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-    </svg>
-  )
-}
-function HouseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M3 9L12 2L21 9V20A1 1 0 0 1 20 21H15V15H9V21H4A1 1 0 0 1 3 20V9Z" />
-    </svg>
-  )
-}
-function SettingsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
-    </svg>
-  )
-}
+function ShelfIcon() { return <span className="material-icons">inventory_2</span> }
+function ExpiringIcon() { return <span className="material-icons">schedule</span> }
+function ReadyIcon() { return <span className="material-icons">verified_user</span> }
+function HouseIcon() { return <span className="material-icons">group</span> }
+function SettingsIcon() { return <span className="material-icons">settings</span> }
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 

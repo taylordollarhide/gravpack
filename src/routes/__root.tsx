@@ -31,6 +31,7 @@ export const Route = createRootRoute({
       { rel: 'icon', type: 'image/png', sizes: '512x512', href: '/app-icon-512.png' },
       { rel: 'apple-touch-icon', sizes: '192x192', href: '/app-icon-192.png' },
       { rel: 'apple-touch-icon', sizes: '512x512', href: '/app-icon-512.png' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/icon?family=Material+Icons' },
     ],
   }),
   shellComponent: RootDocument,
