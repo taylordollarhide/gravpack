@@ -206,7 +206,7 @@ function RestockBreakdownModal({ items, onClose, onItemClick }: { items: Item[];
 }
 
 function ShelfScreen({
-  items, onItemClick, onRestock, deletingId, onShowValueBreakdown, onShowRestockBreakdown, onShowItemsBreakdown, onGoToExpiring,
+  items, onItemClick, onRestock, deletingId, onShowValueBreakdown, onShowRestockBreakdown, onShowItemsBreakdown, onGoToExpiring, onShowLocalInfo,
 }: {
   items: Item[]
   onItemClick: (item: Item) => void
@@ -216,10 +216,10 @@ function ShelfScreen({
   onShowRestockBreakdown: () => void
   onShowItemsBreakdown: () => void
   onGoToExpiring: () => void
+  onShowLocalInfo: () => void
 }) {
   const [search, setSearch] = useState('')
   const [catFilter, setCatFilter] = useState<string>('All')
-  const [showLocalInfo, setShowLocalInfo] = useState(false)
 
   const filtered = items.filter(i => {
     if (i.depleted) return false
@@ -250,45 +250,10 @@ function ShelfScreen({
     <div className="screen" style={{ display: 'block' }}>
       <div className="screen-header">
         <span className="screen-title">SHELF</span>
-        <span className="local-badge" style={{ cursor: 'pointer' }} onClick={() => setShowLocalInfo(true)}>
+        <span className="local-badge" style={{ cursor: 'pointer' }} onClick={onShowLocalInfo}>
           <span className="material-icons" style={{ fontSize: 8, color: 'var(--good)', verticalAlign: 'middle' }}>circle</span>
           LOCAL ONLY
         </span>
-        {showLocalInfo && (
-          <div className="modal-overlay" onClick={() => setShowLocalInfo(false)}>
-            <div className="modal-sheet" onClick={e => e.stopPropagation()}>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px 0' }}>
-                <div className="modal-handle" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 20 }} />
-                <button className="overflow-btn" onClick={() => setShowLocalInfo(false)}>
-                  <span className="material-icons" style={{ fontSize: 22 }}>close</span>
-                </button>
-              </div>
-              <div className="detail-hero" style={{ paddingBottom: 4 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <span className="material-icons" style={{ fontSize: 28, color: 'var(--good)' }}>lock</span>
-                  <div className="detail-name" style={{ fontSize: 24 }}>Your data stays on your device</div>
-                </div>
-                <div className="detail-qty">GravPack never sends your inventory to a server.</div>
-              </div>
-              <div style={{ padding: '4px 20px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {[
-                  { icon: 'storage', title: 'Stored locally', body: 'Everything lives in your browser\'s local storage — no account, no cloud, no syncing.' },
-                  { icon: 'wifi_off', title: 'Works offline', body: 'Add items, check expiry dates, and view your readiness score with no internet connection.' },
-                  { icon: 'visibility_off', title: 'Completely private', body: 'No one can see what you have stocked. Your preparedness data is yours alone.' },
-                  { icon: 'download', title: 'Back up anytime', body: 'Export a CSV from Settings to keep a copy. Restore it on any device running GravPack.' },
-                ].map(({ icon, title, body }) => (
-                  <div key={title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                    <span className="material-icons" style={{ fontSize: 22, color: 'var(--accent)', flexShrink: 0, marginTop: 1 }}>{icon}</span>
-                    <div>
-                      <div style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 700, color: 'var(--t1)', marginBottom: 3 }}>{title}</div>
-                      <div style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--t3)', lineHeight: 1.5 }}>{body}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="stats-bar">
@@ -1716,6 +1681,7 @@ function GravPackApp() {
   const [showValueBreakdown, setShowValueBreakdown] = useState(false)
   const [showRestockBreakdown, setShowRestockBreakdown] = useState(false)
   const [showItemsBreakdown, setShowItemsBreakdown] = useState(false)
+  const [showLocalInfo, setShowLocalInfo] = useState(false)
   const [consumeItem, setConsumeItem] = useState<Item | null>(null)
   const [restockItem, setRestockItem] = useState<Item | null>(null)
 
@@ -1863,6 +1829,7 @@ function GravPackApp() {
             onShowRestockBreakdown={() => setShowRestockBreakdown(true)}
             onShowItemsBreakdown={() => setShowItemsBreakdown(true)}
             onGoToExpiring={() => setScreen('expiring')}
+            onShowLocalInfo={() => setShowLocalInfo(true)}
           />
         )}
         {screen === 'expiring' && (
@@ -1962,6 +1929,41 @@ function GravPackApp() {
       )}
       {showItemsBreakdown && (
         <ItemsBreakdownModal items={items} onClose={() => setShowItemsBreakdown(false)} />
+      )}
+      {showLocalInfo && (
+        <div className="modal-overlay" onClick={() => setShowLocalInfo(false)}>
+          <div className="modal-sheet" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px 0' }}>
+              <div className="modal-handle" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 20 }} />
+              <button className="overflow-btn" onClick={() => setShowLocalInfo(false)}>
+                <span className="material-icons" style={{ fontSize: 22 }}>close</span>
+              </button>
+            </div>
+            <div className="detail-hero" style={{ paddingBottom: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <span className="material-icons" style={{ fontSize: 28, color: 'var(--good)' }}>lock</span>
+                <div className="detail-name" style={{ fontSize: 24 }}>Your data stays on your device</div>
+              </div>
+              <div className="detail-qty">GravPack never sends your inventory to a server.</div>
+            </div>
+            <div style={{ padding: '4px 20px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {[
+                { icon: 'storage', title: 'Stored locally', body: "Everything lives in your browser's local storage — no account, no cloud, no syncing." },
+                { icon: 'wifi_off', title: 'Works offline', body: 'Add items, check expiry dates, and view your readiness score with no internet connection.' },
+                { icon: 'visibility_off', title: 'Completely private', body: 'No one can see what you have stocked. Your preparedness data is yours alone.' },
+                { icon: 'download', title: 'Back up anytime', body: 'Export a CSV from Settings to keep a copy. Restore it on any device running GravPack.' },
+              ].map(({ icon, title, body }) => (
+                <div key={title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <span className="material-icons" style={{ fontSize: 22, color: 'var(--accent)', flexShrink: 0, marginTop: 1 }}>{icon}</span>
+                  <div>
+                    <div style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 700, color: 'var(--t1)', marginBottom: 3 }}>{title}</div>
+                    <div style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--t3)', lineHeight: 1.5 }}>{body}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
