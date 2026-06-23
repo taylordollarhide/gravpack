@@ -2710,7 +2710,7 @@ function GravPackApp() {
             fontWeight: 800,
             color: "var(--t3)",
             lineHeight: 1
-          }, children: covDays > 0 ? `${covDays}d coverage` : `${activeItems} items` }),
+          }, children: covDays > 0 ? `${covDays}d food` : `${activeItems} items` }),
           /* @__PURE__ */ jsx("span", { style: {
             fontFamily: "var(--sans)",
             fontSize: 10,

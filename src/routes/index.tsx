@@ -1803,7 +1803,7 @@ function GravPackApp() {
           return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
               <span style={{ fontFamily: 'var(--disp)', fontSize: 16, fontWeight: 800, color: 'var(--t3)', lineHeight: 1 }}>
-                {covDays > 0 ? `${covDays}d coverage` : `${activeItems} items`}
+                {covDays > 0 ? `${covDays}d food` : `${activeItems} items`}
               </span>
               <span style={{ fontFamily: 'var(--sans)', fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
                 {covDays > 0 ? `${activeItems} items` : 'on shelf'}
