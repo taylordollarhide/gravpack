@@ -2692,7 +2692,7 @@ function GravPackApp() {
     /* @__PURE__ */ jsxs("div", { className: "status-bar", children: [
       (() => {
         const scores = calcScores(household, items);
-        const foodDays = Math.floor(scores.foodDays ?? 0);
+        const covDays = Math.floor(scores.coverageDays ?? 0);
         const activeItems = items.filter((i) => !i.depleted).length;
         return /* @__PURE__ */ jsxs("div", { style: {
           display: "flex",
@@ -2706,14 +2706,14 @@ function GravPackApp() {
             fontWeight: 800,
             color: "var(--t3)",
             lineHeight: 1
-          }, children: foodDays > 0 ? `${foodDays}d food` : `${activeItems} items` }),
+          }, children: covDays > 0 ? `${covDays}d coverage` : `${activeItems} items` }),
           /* @__PURE__ */ jsx("span", { style: {
             fontFamily: "var(--sans)",
             fontSize: 10,
             color: "var(--t3)",
             textTransform: "uppercase",
             letterSpacing: ".05em"
-          }, children: foodDays > 0 ? `${activeItems} items` : "on shelf" })
+          }, children: covDays > 0 ? `${activeItems} items` : "on shelf" })
         ] });
       })(),
       /* @__PURE__ */ jsx("img", { src: "/GravPack-app-logo-white.png", alt: "GravPack", style: {

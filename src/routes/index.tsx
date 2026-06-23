@@ -1796,15 +1796,15 @@ function GravPackApp() {
       <div className="status-bar">
         {(() => {
           const scores = calcScores(household, items)
-          const foodDays = Math.floor(scores.foodDays ?? 0)
+          const covDays = Math.floor(scores.coverageDays ?? 0)
           const activeItems = items.filter(i => !i.depleted).length
           return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
               <span style={{ fontFamily: 'var(--disp)', fontSize: 16, fontWeight: 800, color: 'var(--t3)', lineHeight: 1 }}>
-                {foodDays > 0 ? `${foodDays}d food` : `${activeItems} items`}
+                {covDays > 0 ? `${covDays}d coverage` : `${activeItems} items`}
               </span>
               <span style={{ fontFamily: 'var(--sans)', fontSize: 10, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                {foodDays > 0 ? `${activeItems} items` : 'on shelf'}
+                {covDays > 0 ? `${activeItems} items` : 'on shelf'}
               </span>
             </div>
           )
