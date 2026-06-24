@@ -1419,8 +1419,36 @@ function ReadinessScreen({
         /* @__PURE__ */ jsx("div", { className: "ccd-detail", children: c.detail }),
         /* @__PURE__ */ jsx("div", { className: "ccd-target", children: c.target })
       ] }, c.name)) }),
-      /* @__PURE__ */ jsx("button", { className: "btn-ghost", onClick: onGoToHousehold, children: "Update household →" }),
-      /* @__PURE__ */ jsx("button", { className: "btn-ghost", onClick: onGoToSettings, children: "Settings →" })
+      /* @__PURE__ */ jsxs("div", { style: {
+        display: "flex",
+        gap: 8,
+        padding: "0 16px"
+      }, children: [
+        /* @__PURE__ */ jsxs("button", { className: "btn-ghost", style: {
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4
+        }, onClick: onGoToHousehold, children: [
+          "Update household ",
+          /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+            fontSize: 16
+          }, children: "chevron_right" })
+        ] }),
+        /* @__PURE__ */ jsxs("button", { className: "btn-ghost", style: {
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4
+        }, onClick: onGoToSettings, children: [
+          "Settings ",
+          /* @__PURE__ */ jsx("span", { className: "material-icons", style: {
+            fontSize: 16
+          }, children: "chevron_right" })
+        ] })
+      ] })
     ] })
   ] });
 }

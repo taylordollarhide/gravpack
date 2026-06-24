@@ -589,8 +589,14 @@ function ReadinessScreen({
             ))}
           </div>
 
-          <button className="btn-ghost" onClick={onGoToHousehold}>Update household →</button>
-          <button className="btn-ghost" onClick={onGoToSettings}>Settings →</button>
+          <div style={{ display: 'flex', gap: 8, padding: '0 16px' }}>
+            <button className="btn-ghost" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }} onClick={onGoToHousehold}>
+              Update household <span className="material-icons" style={{ fontSize: 16 }}>chevron_right</span>
+            </button>
+            <button className="btn-ghost" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }} onClick={onGoToSettings}>
+              Settings <span className="material-icons" style={{ fontSize: 16 }}>chevron_right</span>
+            </button>
+          </div>
         </>
       )}
     </div>
