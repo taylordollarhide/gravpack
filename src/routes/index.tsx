@@ -486,11 +486,25 @@ function ReadinessScreen({
     return 80 + ((v - 30) / 60) * 20
   })()
 
+  const dailyWaterGal = household.adults * 1 + household.seniors * 1 + household.dogs * 1 + household.cats * 0.3
+  const dailyCalNeeded = household.adults * 2000 + household.kids * 1400 + household.seniors * 1600
   const cats = [
-    { name: 'Water', score: scores.water, detail: scores.waterDetail },
-    { name: 'Food', score: scores.food, detail: scores.foodDetail },
-    { name: 'Power', score: scores.power, detail: scores.powerDetail },
-    { name: 'Medical', score: scores.medical, detail: scores.medicalDetail },
+    {
+      name: 'Water', score: scores.water, detail: scores.waterDetail,
+      target: dailyWaterGal > 0 ? `Target: ${Math.ceil(dailyWaterGal * 30)} gal · 30d` : 'Target: set up household',
+    },
+    {
+      name: 'Food', score: scores.food, detail: scores.foodDetail,
+      target: dailyCalNeeded > 0 ? `Target: ${Math.round(dailyCalNeeded * 30 / 1000)}k cal · 30d` : 'Target: set up household',
+    },
+    {
+      name: 'Power', score: scores.power, detail: scores.powerDetail,
+      target: 'Target: 2 battery packs + generator',
+    },
+    {
+      name: 'Medical', score: scores.medical, detail: scores.medicalDetail,
+      target: 'Target: first aid kit + 30d rx supply',
+    },
   ]
 
   return (
@@ -559,6 +573,7 @@ function ReadinessScreen({
                   <div className="ccd-fill" style={{ width: `${c.score}%`, background: scoreColor(c.score) }} />
                 </div>
                 <div className="ccd-detail">{c.detail}</div>
+                <div className="ccd-target">{c.target}</div>
               </div>
             ))}
           </div>

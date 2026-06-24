@@ -1297,22 +1297,28 @@ function ReadinessScreen({
     if (v <= 30) return 60 + (v - 14) / 16 * 20;
     return 80 + (v - 30) / 60 * 20;
   })();
+  const dailyWaterGal = household.adults * 1 + household.seniors * 1 + household.dogs * 1 + household.cats * 0.3;
+  const dailyCalNeeded = household.adults * 2e3 + household.kids * 1400 + household.seniors * 1600;
   const cats = [{
     name: "Water",
     score: scores.water,
-    detail: scores.waterDetail
+    detail: scores.waterDetail,
+    target: dailyWaterGal > 0 ? `Target: ${Math.ceil(dailyWaterGal * 30)} gal · 30d` : "Target: set up household"
   }, {
     name: "Food",
     score: scores.food,
-    detail: scores.foodDetail
+    detail: scores.foodDetail,
+    target: dailyCalNeeded > 0 ? `Target: ${Math.round(dailyCalNeeded * 30 / 1e3)}k cal · 30d` : "Target: set up household"
   }, {
     name: "Power",
     score: scores.power,
-    detail: scores.powerDetail
+    detail: scores.powerDetail,
+    target: "Target: 2 battery packs + generator"
   }, {
     name: "Medical",
     score: scores.medical,
-    detail: scores.medicalDetail
+    detail: scores.medicalDetail,
+    target: "Target: first aid kit + 30d rx supply"
   }];
   return /* @__PURE__ */ jsxs("div", { className: "screen", style: {
     display: "block"
@@ -1379,7 +1385,8 @@ function ReadinessScreen({
           width: `${c.score}%`,
           background: scoreColor(c.score)
         } }) }),
-        /* @__PURE__ */ jsx("div", { className: "ccd-detail", children: c.detail })
+        /* @__PURE__ */ jsx("div", { className: "ccd-detail", children: c.detail }),
+        /* @__PURE__ */ jsx("div", { className: "ccd-target", children: c.target })
       ] }, c.name)) }),
       /* @__PURE__ */ jsx("button", { className: "btn-primary", onClick: onGoToStrategy, children: "See action plan →" }),
       /* @__PURE__ */ jsx("button", { className: "btn-ghost", onClick: onGoToHousehold, children: "Update household →" }),
