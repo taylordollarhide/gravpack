@@ -443,9 +443,10 @@ export function calcScores(h: Household, items: Item[] = []): Scores {
     (householdWaterGal > 0 && derivedWaterGal > 0 ? Math.min(householdWaterGal, derivedWaterGal) * 0.5 : 0)
 
   const waterDays = dailyWater > 0 ? totalSafeWater / dailyWater : 0
-  const waterDayScore = Math.min(waterDays / 30, 1) * 60
-  const waterTreatScore = Math.min(treatmentPts, 25)
-  const waterMobileScore = h.jerry ? 15 : 0
+  // Days carry 90% of the score — 30 days = 90pts = green. Treatment/mobile are small bonuses.
+  const waterDayScore = Math.min(waterDays / 30, 1) * 90
+  const waterTreatScore = Math.min(treatmentPts / 5, 7)  // max +7 pts bonus
+  const waterMobileScore = h.jerry ? 3 : 0               // max +3 pts bonus
   const waterScore = Math.min(Math.round(waterDayScore + waterTreatScore + waterMobileScore), 100)
 
   const waterSourceLabel = derivedWaterGal > 0 && householdWaterGal > 0
