@@ -1421,7 +1421,7 @@ function ReadinessScreen({
       ] }, c.name)) }),
       /* @__PURE__ */ jsxs("div", { style: {
         display: "flex",
-        gap: 8,
+        gap: 16,
         padding: "0 16px"
       }, children: [
         /* @__PURE__ */ jsxs("button", { className: "btn-ghost", style: {
