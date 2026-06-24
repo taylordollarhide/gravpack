@@ -462,7 +462,7 @@ export function calcScores(h: Household, items: Item[] = []): Scores {
     (householdTotalCal > 0 && derivedTotalCal > 0 ? Math.min(householdTotalCal, derivedTotalCal) * 0.3 : 0)
 
   const foodDays = dailyCal > 0 && totalStoredCal > 0 ? totalStoredCal / dailyCal : 0
-  let foodScore = Math.min(Math.round((foodDays / 14) * 80), 80)
+  let foodScore = Math.min(Math.round((foodDays / 30) * 100), 100)
   if (h.veg) foodScore = Math.round(foodScore * 0.85)
   if (h.infant) foodScore = Math.max(0, foodScore - 15)
   foodScore = Math.min(foodScore, 100)
@@ -525,9 +525,9 @@ export function calcScores(h: Household, items: Item[] = []): Scores {
 }
 
 export function scoreColor(score: number): string {
-  if (score >= 75) return 'var(--good)'
-  if (score >= 50) return 'var(--yellow)'
-  if (score >= 25) return 'var(--orange)'
+  if (score >= 90) return 'var(--good)'
+  if (score >= 65) return 'var(--yellow)'
+  if (score >= 35) return 'var(--orange)'
   return 'var(--red)'
 }
 
