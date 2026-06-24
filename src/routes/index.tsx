@@ -464,14 +464,14 @@ function ExpiringScreen({ items, onItemClick }: { items: Item[]; onItemClick: (i
 // ─── Readiness Screen ─────────────────────────────────────────────────────────
 
 function ReadinessScreen({
-  household, items, onGoToStrategy, onGoToHousehold, onGoToSettings,
+  household, items, onGoToHousehold, onGoToSettings,
 }: {
   household: Household
   items: Item[]
-  onGoToStrategy: () => void
   onGoToHousehold: () => void
   onGoToSettings: () => void
 }) {
+  const [tab, setTab] = useState<'ready' | 'strategy'>('ready')
   const hasHousehold = household.adults + household.kids + household.seniors > 0
   const scores = calcScores(household, items)
 
@@ -509,11 +509,22 @@ function ReadinessScreen({
 
   return (
     <div className="screen" style={{ display: 'block' }}>
-      <div className="screen-header">
-        <span className="screen-title">READY</span>
+      <div className="screen-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+        <button
+          className="screen-title"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 10px', borderBottom: tab === 'ready' ? '2px solid var(--t1)' : '2px solid transparent', color: tab === 'ready' ? 'var(--t1)' : 'var(--t3)' }}
+          onClick={() => setTab('ready')}
+        >READY</button>
+        <button
+          className="screen-title"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 10px', borderBottom: tab === 'strategy' ? '2px solid var(--t1)' : '2px solid transparent', color: tab === 'strategy' ? 'var(--t1)' : 'var(--t3)' }}
+          onClick={() => setTab('strategy')}
+        >STRATEGY</button>
       </div>
 
-      {!hasHousehold ? (
+      {tab === 'strategy' ? (
+        <StrategyContent household={household} items={items} />
+      ) : !hasHousehold ? (
         <div className="empty-state">
           <div className="empty-title">set up household</div>
           <div className="empty-sub">Configure your household to see<br />your readiness score.</div>
@@ -578,7 +589,6 @@ function ReadinessScreen({
             ))}
           </div>
 
-          <button className="btn-primary" onClick={onGoToStrategy}>See action plan →</button>
           <button className="btn-ghost" onClick={onGoToHousehold}>Update household →</button>
           <button className="btn-ghost" onClick={onGoToSettings}>Settings →</button>
         </>
@@ -733,13 +743,7 @@ function HouseholdScreen({ household, onChange }: { household: Household; onChan
 
 // ─── Strategy Screen ──────────────────────────────────────────────────────────
 
-function StrategyScreen({
-  household, items, onBack,
-}: {
-  household: Household
-  items: Item[]
-  onBack: () => void
-}) {
+function StrategyContent({ household, items }: { household: Household; items: Item[] }) {
   const scores = calcScores(household, items)
   const actions = buildStrategy(household, items)
   const urgent = actions.filter(a => a.priority === 'urgent')
@@ -749,12 +753,7 @@ function StrategyScreen({
   const potentialGain = Math.min(100 - scores.overall, actions.length * 8)
 
   return (
-    <div className="screen" style={{ display: 'block' }}>
-      <div className="screen-header">
-        <span className="screen-title">STRATEGY</span>
-        <button className="back-btn" onClick={onBack}>← Readiness</button>
-      </div>
-
+    <>
       <div className="strat-hero">
         <div className="strat-hero-row">
           <div>
@@ -811,7 +810,7 @@ function StrategyScreen({
         </>
       )}
       <div style={{ height: 8 }} />
-    </div>
+    </>
   )
 }
 
@@ -1851,13 +1850,9 @@ function GravPackApp() {
           <ReadinessScreen
             household={household}
             items={items}
-            onGoToStrategy={() => setScreen('strategy')}
             onGoToHousehold={() => setScreen('household')}
             onGoToSettings={() => setScreen('settings')}
           />
-        )}
-        {screen === 'strategy' && (
-          <StrategyScreen household={household} items={items} onBack={() => setScreen('readiness')} />
         )}
         {screen === 'household' && (
           <HouseholdScreen household={household} onChange={setHousehold} />
@@ -1914,11 +1909,11 @@ function GravPackApp() {
         {tabs.map(t => (
           <button
             key={t.id}
-            className={`tab${(screen === t.id || (screen === 'strategy' && t.id === 'readiness')) ? ' on' : ''}`}
+            className={`tab${screen === t.id ? ' on' : ''}`}
             onClick={() => setScreen(t.id)}
           >
             <div className="tab-icon" style={{
-              color: (screen === t.id || (screen === 'strategy' && t.id === 'readiness')) ? 'var(--accent)' : 'var(--t3)'
+              color: screen === t.id ? 'var(--accent)' : 'var(--t3)'
             }}>
               {t.icon}
             </div>

@@ -1293,10 +1293,10 @@ function ExpiringScreen({
 function ReadinessScreen({
   household,
   items,
-  onGoToStrategy,
   onGoToHousehold,
   onGoToSettings
 }) {
+  const [tab, setTab] = useState("ready");
   const hasHousehold = household.adults + household.kids + household.seniors > 0;
   const scores = calcScores(household, items);
   const foodDaysVal = scores.foodDays ?? 0;
@@ -1334,8 +1334,28 @@ function ReadinessScreen({
   return /* @__PURE__ */ jsxs("div", { className: "screen", style: {
     display: "block"
   }, children: [
-    /* @__PURE__ */ jsx("div", { className: "screen-header", children: /* @__PURE__ */ jsx("span", { className: "screen-title", children: "READY" }) }),
-    !hasHousehold ? /* @__PURE__ */ jsxs("div", { className: "empty-state", children: [
+    /* @__PURE__ */ jsxs("div", { className: "screen-header", style: {
+      borderBottom: "none",
+      paddingBottom: 0
+    }, children: [
+      /* @__PURE__ */ jsx("button", { className: "screen-title", style: {
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: "0 0 10px",
+        borderBottom: tab === "ready" ? "2px solid var(--t1)" : "2px solid transparent",
+        color: tab === "ready" ? "var(--t1)" : "var(--t3)"
+      }, onClick: () => setTab("ready"), children: "READY" }),
+      /* @__PURE__ */ jsx("button", { className: "screen-title", style: {
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: "0 0 10px",
+        borderBottom: tab === "strategy" ? "2px solid var(--t1)" : "2px solid transparent",
+        color: tab === "strategy" ? "var(--t1)" : "var(--t3)"
+      }, onClick: () => setTab("strategy"), children: "STRATEGY" })
+    ] }),
+    tab === "strategy" ? /* @__PURE__ */ jsx(StrategyContent, { household, items }) : !hasHousehold ? /* @__PURE__ */ jsxs("div", { className: "empty-state", children: [
       /* @__PURE__ */ jsx("div", { className: "empty-title", children: "set up household" }),
       /* @__PURE__ */ jsxs("div", { className: "empty-sub", children: [
         "Configure your household to see",
@@ -1399,7 +1419,6 @@ function ReadinessScreen({
         /* @__PURE__ */ jsx("div", { className: "ccd-detail", children: c.detail }),
         /* @__PURE__ */ jsx("div", { className: "ccd-target", children: c.target })
       ] }, c.name)) }),
-      /* @__PURE__ */ jsx("button", { className: "btn-primary", onClick: onGoToStrategy, children: "See action plan →" }),
       /* @__PURE__ */ jsx("button", { className: "btn-ghost", onClick: onGoToHousehold, children: "Update household →" }),
       /* @__PURE__ */ jsx("button", { className: "btn-ghost", onClick: onGoToSettings, children: "Settings →" })
     ] })
@@ -1556,10 +1575,9 @@ function HouseholdScreen({
     } })
   ] });
 }
-function StrategyScreen({
+function StrategyContent({
   household,
-  items,
-  onBack
+  items
 }) {
   const scores = calcScores(household, items);
   const actions = buildStrategy(household, items);
@@ -1567,13 +1585,7 @@ function StrategyScreen({
   const high = actions.filter((a) => a.priority === "high");
   const med = actions.filter((a) => a.priority === "med");
   const potentialGain = Math.min(100 - scores.overall, actions.length * 8);
-  return /* @__PURE__ */ jsxs("div", { className: "screen", style: {
-    display: "block"
-  }, children: [
-    /* @__PURE__ */ jsxs("div", { className: "screen-header", children: [
-      /* @__PURE__ */ jsx("span", { className: "screen-title", children: "STRATEGY" }),
-      /* @__PURE__ */ jsx("button", { className: "back-btn", onClick: onBack, children: "← Readiness" })
-    ] }),
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
     /* @__PURE__ */ jsxs("div", { className: "strat-hero", children: [
       /* @__PURE__ */ jsxs("div", { className: "strat-hero-row", children: [
         /* @__PURE__ */ jsxs("div", { children: [
@@ -2735,8 +2747,7 @@ function GravPackApp() {
     /* @__PURE__ */ jsxs("div", { className: "screen-wrap", children: [
       screen === "shelf" && /* @__PURE__ */ jsx(ShelfScreen, { items, household, onItemClick: (item) => setDetailItem(item), onRestock: (item) => setRestockItem(item), deletingId, onShowValueBreakdown: () => setShowValueBreakdown(true), onShowRestockBreakdown: () => setShowRestockBreakdown(true), onShowItemsBreakdown: () => setShowItemsBreakdown(true), onGoToExpiring: () => setScreen("expiring"), onShowLocalInfo: () => setShowLocalInfo(true) }),
       screen === "expiring" && /* @__PURE__ */ jsx(ExpiringScreen, { items, onItemClick: (item) => setDetailItem(item) }),
-      screen === "readiness" && /* @__PURE__ */ jsx(ReadinessScreen, { household, items, onGoToStrategy: () => setScreen("strategy"), onGoToHousehold: () => setScreen("household"), onGoToSettings: () => setScreen("settings") }),
-      screen === "strategy" && /* @__PURE__ */ jsx(StrategyScreen, { household, items, onBack: () => setScreen("readiness") }),
+      screen === "readiness" && /* @__PURE__ */ jsx(ReadinessScreen, { household, items, onGoToHousehold: () => setScreen("household"), onGoToSettings: () => setScreen("settings") }),
       screen === "household" && /* @__PURE__ */ jsx(HouseholdScreen, { household, onChange: setHousehold }),
       screen === "settings" && /* @__PURE__ */ jsx(SettingsScreen, { items, displayName, theme, accentColor, onThemeChange: setTheme, onAccentChange: setAccentColor, onDisplayNameChange: setDisplayName, onClearAll: () => setItems([]), onImport: setItems }),
       hasModal && /* @__PURE__ */ jsxs(Fragment, { children: [
@@ -2757,9 +2768,9 @@ function GravPackApp() {
       ] })
     ] }),
     showInstallBanner && !hasModal && /* @__PURE__ */ jsx(InstallBanner, { onDismiss: dismissInstallBanner }),
-    /* @__PURE__ */ jsx("div", { className: "tab-bar", children: tabs.map((t) => /* @__PURE__ */ jsxs("button", { className: `tab${screen === t.id || screen === "strategy" && t.id === "readiness" ? " on" : ""}`, onClick: () => setScreen(t.id), children: [
+    /* @__PURE__ */ jsx("div", { className: "tab-bar", children: tabs.map((t) => /* @__PURE__ */ jsxs("button", { className: `tab${screen === t.id ? " on" : ""}`, onClick: () => setScreen(t.id), children: [
       /* @__PURE__ */ jsx("div", { className: "tab-icon", style: {
-        color: screen === t.id || screen === "strategy" && t.id === "readiness" ? "var(--accent)" : "var(--t3)"
+        color: screen === t.id ? "var(--accent)" : "var(--t3)"
       }, children: t.icon }),
       /* @__PURE__ */ jsx("div", { className: "tab-label", children: t.label })
     ] }, t.id)) }),
