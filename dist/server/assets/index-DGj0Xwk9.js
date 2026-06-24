@@ -467,6 +467,17 @@ function buildStrategy(h, items) {
       impact: "+10–20 pts",
       category: "Food"
     });
+  } else if (dailyCal > 0 && scores.foodDays < 30) {
+    const daysNeeded = Math.ceil(30 - scores.foodDays);
+    const calNeeded = Math.round(daysNeeded * dailyCal / 1e3);
+    actions.push({
+      priority: "med",
+      title: "Close the gap to 30-day food supply",
+      why: `${scores.foodDays.toFixed(1)}d tracked · ${daysNeeded}d short of 30d target · need ~${calNeeded}k more cal`,
+      cost: "~$40–100",
+      impact: "+10–15 pts",
+      category: "Food"
+    });
   }
   if (scores.shelfFoodCal === 0 && h.cal === 0) {
     actions.push({
