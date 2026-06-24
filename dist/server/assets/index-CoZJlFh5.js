@@ -1422,10 +1422,12 @@ function ReadinessScreen({
       /* @__PURE__ */ jsxs("div", { style: {
         display: "flex",
         gap: 16,
-        padding: "0 16px"
+        margin: "8px 16px"
       }, children: [
         /* @__PURE__ */ jsxs("button", { className: "btn-ghost", style: {
           flex: 1,
+          width: "auto",
+          margin: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -1438,6 +1440,8 @@ function ReadinessScreen({
         ] }),
         /* @__PURE__ */ jsxs("button", { className: "btn-ghost", style: {
           flex: 1,
+          width: "auto",
+          margin: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

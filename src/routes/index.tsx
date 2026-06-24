@@ -589,11 +589,11 @@ function ReadinessScreen({
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: 16, padding: '0 16px' }}>
-            <button className="btn-ghost" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }} onClick={onGoToHousehold}>
+          <div style={{ display: 'flex', gap: 16, margin: '8px 16px' }}>
+            <button className="btn-ghost" style={{ flex: 1, width: 'auto', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }} onClick={onGoToHousehold}>
               Update household <span className="material-icons" style={{ fontSize: 16 }}>chevron_right</span>
             </button>
-            <button className="btn-ghost" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }} onClick={onGoToSettings}>
+            <button className="btn-ghost" style={{ flex: 1, width: 'auto', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }} onClick={onGoToSettings}>
               Settings <span className="material-icons" style={{ fontSize: 16 }}>chevron_right</span>
             </button>
           </div>
