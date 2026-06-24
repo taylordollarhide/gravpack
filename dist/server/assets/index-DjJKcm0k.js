@@ -1055,7 +1055,9 @@ function ShelfScreen({
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Items ›" })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
-        /* @__PURE__ */ jsxs("div", { className: "stat-val", children: [
+        /* @__PURE__ */ jsxs("div", { className: "stat-val", style: {
+          color: foodDays >= 30 ? "var(--good)" : foodDays >= 7 ? "var(--orange)" : "var(--red)"
+        }, children: [
           foodDays,
           /* @__PURE__ */ jsx("span", { style: {
             color: "var(--t3)",
@@ -1065,7 +1067,9 @@ function ShelfScreen({
         /* @__PURE__ */ jsx("div", { className: "stat-lbl", children: "Food" })
       ] }),
       /* @__PURE__ */ jsxs("div", { className: "stat-card", children: [
-        /* @__PURE__ */ jsxs("div", { className: "stat-val", children: [
+        /* @__PURE__ */ jsxs("div", { className: "stat-val", style: {
+          color: waterDays >= 30 ? "var(--good)" : waterDays >= 7 ? "var(--orange)" : "var(--red)"
+        }, children: [
           waterDays,
           /* @__PURE__ */ jsx("span", { style: {
             color: "var(--t3)",
